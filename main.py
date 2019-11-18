@@ -115,11 +115,11 @@ def main(args):
 
     # 指定输出文件
     # 第三部分要说明关键参数的设定
-    sys.stdout = Logger(osp.join(args.logs_dir, args.dataset,args.exp_name+'_'+args.exp_order,'log_EF-{}_q-{}.txt'.format(args.EF,args.q)))
-    data_file =codecs.open(osp.join(args.logs_dir, args.dataset,args.exp_name+'_'+args.exp_order,'data_EF-{}_q-{}.txt'.format(args.EF,args.q)),mode='a')
+    sys.stdout = Logger(osp.join(args.logs_dir, args.dataset,args.exp_name,args.exp_order,'log_EF-{}_q-{}.txt'.format(args.EF,args.q)))
+    data_file =codecs.open(osp.join(args.logs_dir, args.dataset,args.exp_name,args.exp_order,'data_EF-{}_q-{}.txt'.format(args.EF,args.q)),mode='a')
     if args.clock :
-        time_file =codecs.open(osp.join(args.logs_dir, args.dataset,args.exp_name+'_'+args.exp_order,'time_EF-{}_q-{}.txt'.format(args.EF,args.q)),mode='a')
-    save_path = osp.join(args.logs_dir, args.dataset,args.exp_name+'_'+args.exp_order)
+        time_file =codecs.open(osp.join(args.logs_dir, args.dataset,args.exp_name,args.exp_order,'time_EF-{}_q-{}.txt'.format(args.EF,args.q)),mode='a')
+    save_path = osp.join(args.logs_dir, args.dataset,args.exp_name,args.exp_order)
 
     resume_step, ckpt_file = -1, ''
     if args.resume:  # 重新训练的时候用
