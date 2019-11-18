@@ -1,0 +1,1 @@
+python3.6 main.py --dataset DukeMTMC-VideoReID  --yita 400  --mode Dissimilarity --max_frames 100  -b 16 --exp_name snatch --exp_order 1  --epoch 0
