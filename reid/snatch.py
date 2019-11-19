@@ -140,6 +140,14 @@ class EUG():
         features = np.array([logit.numpy() for logit in features.values()])
         return features
 
+    def get_feature_with_labels_cams(self, dataset):
+        dataloader = self.get_dataloader(dataset, training=False)
+        features,labels,cams = extract_features(self.model, dataloader)
+        features = np.array([logit.numpy() for logit in features.values()])
+        labels = np.array([logit.numpy() for logit in labels.values()])
+        cams = np.array([logit.numpy() for logit in cams.values()])
+        return features,labels,cams
+
     # def get_Classification_result(self):  #是指的用CNN的分类结果贴标签
     #     logits = self.get_feature(self.u_data)
     #     exp_logits = np.exp(logits)
@@ -438,3 +446,59 @@ def get_one_shot_in_cam1(dataset, load_path, seed=0):
     print("  unlabeled  | N/A | {:8d}".format(len(unlabel_dataset)))
     print("\nCreate new one-shot split, and save it to", load_path)
     return label_dataset, unlabel_dataset
+
+
+def get_one_shot_in_cam2(dataset, load_path, seed=0):
+
+    np.random.seed(seed)
+    random.seed(seed)
+
+    # if previous split exists, load it and return
+    if osp.exists(load_path):
+        with open(load_path, "rb") as fp:
+            dataset = pickle.load(fp)
+            label_dataset = dataset["label set"]
+            unlabel_dataset = dataset["unlabel set"]
+
+        print("  labeled  |   N/A | {:8d}".format(len(label_dataset)))
+        print("  unlabel  |   N/A | {:8d}".format(len(unlabel_dataset)))
+        print("\nLoad one-shot split from", load_path)
+        return label_dataset+unlabel_dataset,[]
+
+
+
+    #print("random create new one-shot split and save it to", load_path)
+
+    label_dataset = []
+    unlabel_dataset = []
+
+    # dataset indexed by [pid, cam]
+    dataset_in_pid_cam = [[[] for _ in range(dataset.num_cams)] for _ in range(dataset.num_train_ids) ]
+    for index, (images, pid, camid, videoid) in enumerate(dataset.train):
+        dataset_in_pid_cam[pid][camid].append([images, pid, camid, videoid])
+
+
+    # generate the labeled dataset by randomly selecting a tracklet from the first camera for each identity
+    for pid, cams_data  in enumerate(dataset_in_pid_cam):
+        for camid, videos in enumerate(cams_data):
+            if len(videos) != 0:
+                selected_video = random.choice(videos)
+                break
+        label_dataset.append(selected_video)
+    assert len(label_dataset) == dataset.num_train_ids
+    labeled_videoIDs =[vid for _, (_,_,_, vid) in enumerate(label_dataset)]
+
+    # generate unlabeled set
+    for (imgs, pid, camid, videoid) in dataset.train:
+        if videoid not in labeled_videoIDs:
+            unlabel_dataset.append([imgs, pid, camid, videoid])
+
+
+    with open(load_path, "wb") as fp:
+        pickle.dump({"label set":label_dataset, "unlabel set":unlabel_dataset}, fp)
+
+
+    print("  labeled    | N/A | {:8d}".format(len(label_dataset)))
+    print("  unlabeled  | N/A | {:8d}".format(len(unlabel_dataset)))
+    print("\nCreate new one-shot split, and save it to", load_path)
+    return label_dataset+unlabel_dataset,[]
