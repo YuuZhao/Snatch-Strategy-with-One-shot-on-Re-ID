@@ -149,13 +149,13 @@ def main(args):
 
         # 开始评估
         evaluate_start = time.time()
-        mAP, top1, top5, top10, top20 = 0,0,0,0,0
-        # mAP,top1,top5,top10,top20 = eug.evaluate(dataset_all.query, dataset_all.gallery)
+        # mAP, top1, top5, top10, top20 = 0,0,0,0,0
+        mAP,top1,top5,top10,top20 = eug.evaluate(dataset_all.query, dataset_all.gallery)
 
         # 标签估计
         estimate_start = time.time()
-        pred_y, pred_score, label_pre, id_num = 0,0,0,0
-        # pred_y, pred_score, label_pre, id_num = eug.estimate_label()
+        # pred_y, pred_score, label_pre, id_num = 0,0,0,0
+        pred_y, pred_score, label_pre, id_num = eug.estimate_label()
         estimate_end = time.time()
 
         # 循环退出判断
@@ -166,17 +166,15 @@ def main(args):
         new_nums_to_select = min(math.ceil(len(u_data) * math.pow((step + 1), args.q) * args.EF / 100),len(u_data))  # EUG 基础指数渐进策略
         # new_nums_to_select = min(math.ceil((len(u_data)-args.yita)*(step-1)/(total_step-2))+args.yita,len(u_data))  # big start
 
-        # selected_idx = eug.select_top_data(pred_score, new_nums_to_select)
-        select_pre =0
-        # new_train_data, select_pre = eug.generate_new_train_data(selected_idx, pred_y)
+        selected_idx = eug.select_top_data(pred_score, new_nums_to_select)
+        new_train_data, select_pre = eug.generate_new_train_data(selected_idx, pred_y)
 
         # 输出该epoch的信息
         data_file.write("step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} nums_selected:{} selected_percent:{:.2%} label_pre:{:.2%} select_pre:{:.2%}\n".format(
                 int(step), mAP, top1, top5,top10,top20,nums_to_select, nums_to_select/len(u_data),label_pre,select_pre))
         print(
             "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} nums_selected:{} selected_percent:{:.2%} label_pre:{:.2%} select_pre:{:.2%}\n".format(
-                int(step), mAP, top1, top5, top10, top20, nums_to_select, nums_to_select / len(u_data), label_pre,
-                select_pre))
+                int(step), mAP, top1, top5, top10, top20, nums_to_select, nums_to_select / len(u_data), label_pre,select_pre))
 
         if args.clock:
             train_time = evaluate_start-train_start
