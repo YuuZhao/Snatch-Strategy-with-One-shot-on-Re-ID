@@ -216,7 +216,7 @@ if __name__ == '__main__':
     parser.add_argument('--exp_order',type=str,default="1")
     parser.add_argument('--resume', type=str, default=None)
     parser.add_argument('--mode', type=str, choices=["Classification", "Dissimilarity"], default="Dissimilarity")   #这个考虑要不要取消掉
-    parser.add_argument('--max_frames', type=int, default=100)
+    parser.add_argument('--max_frames', type=int, default=400)
     parser.add_argument('--clock',type=bool, default=True)  #是否记时
     parser.add_argument('--gdraw',type=bool, default=False)  #是否实时绘图
 
