@@ -285,6 +285,28 @@ class EUG():
             v[index[i]] = 1
         return v.astype('bool')
 
+    def select_top_data_nlvm_b1(self,pred_score,new_expend_nums_to_select,new_nums_to_select):
+        # pred_score = pred_score.T # if necessary
+        # 方案2, 求最近的P%样本的方差
+        N_u, N_l = pred_score.shape
+        stds = np.zeros(N_u)
+        selection1=selection2= np.zeros(N_u, 'bool')
+        index = np.argsort(-pred_score)
+        selection1[index[:new_expend_nums_to_select]] = True  # selection1 就是选出 距离在一定范围内的数量
+        # 求最近的P%样本的方差
+        for i in index[:new_expend_nums_to_select]:
+            score = pred_score[i]
+            # 求k近邻
+            # topk = int(N_l * percent_P)
+            topk = 2
+            topk_idxs = np.argpartition(score, topk)[:topk]
+            stds[i] = score[topk_idxs].std()
+        # 根据方差排序
+        idxs = np.argsort(stds)  # 这里该取负还是取正呢?
+        # print(stds[idxs[:nums_to_select]])
+        selection2[idxs[:new_nums_to_select]] = True
+        return selection2
+
     def select_top_data_NLVM(self, pred_score, nums_to_select, percent_P = 0.1, percent_N = 0.1):
         # pred_score = pred_score.T # if necessary
         N_u,N_l = pred_score.shape
@@ -297,7 +319,7 @@ class EUG():
         selection = np.zeros(N_u,'bool')
         # 计算P样本方差
         for i in range(N_u):
-            score = pred_score[i]
+            score = pred_score[i] # 这个是距离
             mask = masks[i] == 1
             # print(score.std(),score[mask].std())
             if sum(mask) > 1:
