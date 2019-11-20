@@ -181,7 +181,7 @@ def main(args):
             evaluate_time = estimate_start - evaluate_start
             estimate_time = estimate_end-estimate_start
             epoch_time = train_time+estimate_time
-            time_file.write("train:{} evaluate:{} estimate:{} epoch:{}\n".format(train_time,evaluate_time,estimate_time,epoch_time))
+            time_file.write("step:{}  rain:{} evaluate:{} estimate:{} epoch:{}\n".format(int(step),train_time,evaluate_time,estimate_time,epoch_time))
 
         if args.gdraw:
             gd.draw(nums_to_select/len(u_data),top1,mAP,label_pre,select_pre)
