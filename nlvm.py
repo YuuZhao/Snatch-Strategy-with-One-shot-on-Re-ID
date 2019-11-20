@@ -130,6 +130,7 @@ def main(args):
 
     # 训练之前初始化数据
     nums_to_select = 0
+    expend_nums_to_select = 0
     new_train_data = l_data
     step = 1
     step_size = []
@@ -153,7 +154,7 @@ def main(args):
         # 标签估计
         estimate_start = time.time()
         # pred_y, pred_score, label_pre, id_num = 0,0,0,0
-        pred_y, pred_score, label_pre, id_num = eug.estimate_label()
+        pred_y, pred_score, label_pre, dists = eug.estimate_label()
         estimate_end = time.time()
 
         # 循环退出判断
@@ -162,30 +163,31 @@ def main(args):
 
         # nums_to_select 的设定
         new_nums_to_select = min(math.ceil(len(u_data) * math.pow((step + 1), args.q) * args.EF / 100),len(u_data))  # EUG 基础指数渐进策略
-        new_expend_nums_to_select = min(len(u_data),math.ceil(new_nums_to_select/args.percent_vari))
         # new_nums_to_select = min(math.ceil((len(u_data)-args.yita)*(step-1)/(total_step-2))+args.yita,len(u_data))  # big start
+        new_expend_nums_to_select = min(len(u_data), math.ceil(new_nums_to_select / args.percent_vari))
 
-        selected_idx = eug.select_top_data_nlvm_b1(pred_score, new_expend_nums_to_select,new_nums_to_select)
+        selected_idx = eug.select_top_data_nlvm_b1(pred_score,dists, new_expend_nums_to_select,new_nums_to_select)
         new_train_data, select_pre = eug.generate_new_train_data(selected_idx, pred_y)
 
         # 输出该epoch的信息
-        data_file.write("step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} nums_selected:{} selected_percent:{:.2%} label_pre:{:.2%} select_pre:{:.2%}\n".format(
-                int(step), mAP, top1, top5,top10,top20,nums_to_select, nums_to_select/len(u_data),label_pre,select_pre))
+        data_file.write("step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} nums_selected:{} expend_nums_to_select:{} selected_percent:{:.2%} label_pre:{:.2%} select_pre:{:.2%}\n".format(
+                int(step), mAP, top1, top5,top10,top20,nums_to_select, expend_nums_to_select,nums_to_select/len(u_data),label_pre,select_pre))
         print(
-            "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} nums_selected:{} selected_percent:{:.2%} label_pre:{:.2%} select_pre:{:.2%}\n".format(
-                int(step), mAP, top1, top5, top10, top20, nums_to_select, nums_to_select / len(u_data), label_pre,select_pre))
+            "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} nums_selected:{} expend_nums_to_select:{}  selected_percent:{:.2%} label_pre:{:.2%} select_pre:{:.2%}\n".format(
+                int(step), mAP, top1, top5, top10, top20, nums_to_select, expend_nums_to_select,nums_to_select / len(u_data), label_pre,select_pre))
 
         if args.clock:
             train_time = evaluate_start-train_start
             evaluate_time = estimate_start - evaluate_start
             estimate_time = estimate_end-estimate_start
             epoch_time = train_time+estimate_time
-            time_file.write("train:{} evaluate:{} estimate:{} epoch:{}\n".format(train_time,evaluate_time,estimate_time,epoch_time))
+            time_file.write("step:{} train:{} evaluate:{} estimate:{} epoch:{}\n".format(int(step),train_time,evaluate_time,estimate_time,epoch_time))
 
         if args.gdraw:
             gd.draw(nums_to_select/len(u_data),top1,mAP,label_pre,select_pre)
 
         nums_to_select = new_nums_to_select
+        expend_nums_to_select = new_expend_nums_to_select
         step = step + 1
 
     data_file.close()
@@ -206,17 +208,17 @@ if __name__ == '__main__':
     parser.add_argument('--step_size',type=int,default=30)
     parser.add_argument('--EF', type=float, default=10)  # 渐进采样系数
     parser.add_argument('--q', type=float, default=1)  # 渐进采样指数
-    parser.add_argument('--percent_vari', type=int, default=0.8)   # 方差的筛选范围.
+    parser.add_argument('--percent_vari', type=float, default=0.8)   # 方差的筛选范围.
     working_dir = os.path.dirname(os.path.abspath(__file__))
     parser.add_argument('--data_dir', type=str, metavar='PATH',default=os.path.join(working_dir, 'data'))  # 加载数据集的根目录
     parser.add_argument('--logs_dir', type=str, metavar='PATH',default=os.path.join(working_dir, 'logs'))  # 保持日志根目录
-    parser.add_argument('--exp_name',type=str,default="gradully_supplement")
+    parser.add_argument('--exp_name',type=str,default="nlvm-b1")
     parser.add_argument('--exp_order',type=str,default="1")
     parser.add_argument('--resume', type=str, default=None)
     parser.add_argument('--mode', type=str, choices=["Classification", "Dissimilarity"], default="Dissimilarity")   #这个考虑要不要取消掉
     parser.add_argument('--max_frames', type=int, default=100)
     parser.add_argument('--clock',type=bool, default=True)  #是否记时
-    parser.add_argument('--gdraw',type=bool, default=True)  #是否实时绘图
+    parser.add_argument('--gdraw',type=bool, default=False)  #是否实时绘图
 
     #下面是暂时不知道用来做什么的参数
     parser.add_argument('-a', '--arch', type=str, default='avg_pool',choices=models.names())  #eug model_name

@@ -179,10 +179,12 @@ class EUG():
         id_num = {}  #以标签名称作为字典
         # a = 1
         num_correct_pred = 0
+        dists = []
         for idx, u_fea in enumerate(u_feas):
             diffs = l_feas - u_fea
             dist = np.linalg.norm(diffs,axis=1)
             index_min = np.argmin(dist)
+            dists.append(dist)
             scores[idx] = - dist[index_min]  # "- dist" : more dist means less score
             labels[idx] = self.l_label[index_min] # take the nearest labled neighbor as the prediction label
             # if a:
@@ -193,19 +195,20 @@ class EUG():
             if self.u_label[idx] == labels[idx]:
                 num_correct_pred +=1
             # 统计各个id的数量
-            if str(labels[idx]) in id_num.keys():
-                id_num[str(labels[idx])]=id_num[str(labels[idx])]+1 #值加1
-            else:
-                id_num[str(labels[idx])] =1
+            # if str(labels[idx]) in id_num.keys():
+            #     id_num[str(labels[idx])]=id_num[str(labels[idx])]+1 #值加1
+            # else:
+            #     id_num[str(labels[idx])]=1
 
 
         print("{} predictions on all the unlabeled data: {} of {} is correct, accuracy = {:0.3f}".format(
             self.mode, num_correct_pred, u_feas.shape[0], num_correct_pred/u_feas.shape[0]))
 
-        sorted(id_num.items(),key = lambda item:item[1])
+        # sorted(id_num.items(),key = lambda item:item[1])
         # print("id_num:--------------------------------------------id_num----------------- ")
         # print(id_num)
-        return labels, scores,num_correct_pred/u_feas.shape[0],id_num
+        dists = np.vstack(dists)
+        return labels, scores,num_correct_pred/u_feas.shape[0],dists
 
     def get_Dissimilarity_result2(self):
         # l_feas_file = codecs.open("logs/l_feas/test1.txt",'a')
@@ -267,7 +270,7 @@ class EUG():
 
         if self.mode == "Dissimilarity":
             # predict label by dissimilarity cost
-            [pred_label, pred_score,label_pre,id_num] = self.get_Dissimilarity_result2()
+            [pred_label, pred_score,label_pre,id_num] = self.get_Dissimilarity_result()
 
         elif self.mode == "Classification":
             # predict label by classification
@@ -285,24 +288,24 @@ class EUG():
             v[index[i]] = 1
         return v.astype('bool')
 
-    def select_top_data_nlvm_b1(self,pred_score,new_expend_nums_to_select,new_nums_to_select):
+    def select_top_data_nlvm_b1(self,pred_score,dists,new_expend_nums_to_select,new_nums_to_select):
         # pred_score = pred_score.T # if necessary
         # 方案2, 求最近的P%样本的方差
-        N_u, N_l = pred_score.shape
+        N_u,N_l = dists.shape
         stds = np.zeros(N_u)
         selection1=selection2= np.zeros(N_u, 'bool')
         index = np.argsort(-pred_score)
         selection1[index[:new_expend_nums_to_select]] = True  # selection1 就是选出 距离在一定范围内的数量
         # 求最近的P%样本的方差
         for i in index[:new_expend_nums_to_select]:
-            score = pred_score[i]
+            score = - dists[i]
             # 求k近邻
             # topk = int(N_l * percent_P)
             topk = 2
             topk_idxs = np.argpartition(score, topk)[:topk]
-            stds[i] = score[topk_idxs].std()
+            stds[i] = score[topk_idxs].std()   # 这里要求pre_score 要是二维的才行
         # 根据方差排序
-        idxs = np.argsort(stds)  # 这里该取负还是取正呢?
+        idxs = np.argsort(-stds)  # 这里该取负还是取正呢?
         # print(stds[idxs[:nums_to_select]])
         selection2[idxs[:new_nums_to_select]] = True
         return selection2
