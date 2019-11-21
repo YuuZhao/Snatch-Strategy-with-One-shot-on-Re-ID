@@ -109,7 +109,7 @@ def main(args):
     # total_step = math.ceil((2 * NN * args.step_s + args.yita + len(u_data)) / (args.yita + NN + len(l_data))) + 2 # big start 策略
 
     # 输出该轮训练关键的提示信息
-    print("{} training begin with dataset:{},batch_size:{},epoch:{},step_size:{},max_frames:{},total_step:{},EF:{},q:{},percent_vari:{}".format(args.exp_name,args.dataset,args.batch_size,args.epoch,args.step_size,args.max_frames,total_step,args.EF,args.q,args.percent_vari))
+    print("{} training begin with dataset:{},batch_size:{},epoch:{},step_size:{},max_frames:{},total_step:{},EF:{},q:{},percent_vari:{}".format(args.exp_name,args.dataset,args.batch_size,args.epoch,args.step_size,args.max_frames,total_step+1,args.EF,args.q,args.percent_vari))
 
     # 指定输出文件
     # 第三部分要说明关键参数的设定
@@ -132,14 +132,14 @@ def main(args):
     nums_to_select = 0
     expend_nums_to_select = 0
     new_train_data = l_data
-    step = 1
+    step = 0
     step_size = []
     isout = 0  #用来标记是否应该结束训练
 
     # 开始的时间记录
     exp_start = time.time()
     while(not isout):
-        print("{} training begin with dataset:{},batch_size:{},epoch:{},step:{}/{} saved to {}.".format(args.exp_name,args.dataset,args.batch_size, args.epoch,step,total_step,save_path))
+        print("{} training begin with dataset:{},batch_size:{},epoch:{},step:{}/{} saved to {}.".format(args.exp_name,args.dataset,args.batch_size, args.epoch,step+1,total_step+1,save_path))
         print("key parameters contain EF:{},q:{},percent_vari:{}. Nums_been_selected:{}".format(args.EF,args.q,args.percent_vari,nums_to_select))
 
         # 开始训练
@@ -168,20 +168,21 @@ def main(args):
 
         selected_idx = eug.select_top_data_nlvm_b1(pred_score,dists, new_expend_nums_to_select,new_nums_to_select)
         new_train_data, select_pre = eug.generate_new_train_data(selected_idx, pred_y)
+        # select_pre =0
 
         # 输出该epoch的信息
         data_file.write("step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} nums_selected:{} expend_nums_to_select:{} selected_percent:{:.2%} label_pre:{:.2%} select_pre:{:.2%}\n".format(
-                int(step), mAP, top1, top5,top10,top20,nums_to_select, expend_nums_to_select,nums_to_select/len(u_data),label_pre,select_pre))
+                int(step+1), mAP, top1, top5,top10,top20,nums_to_select, expend_nums_to_select,nums_to_select/len(u_data),label_pre,select_pre))
         print(
             "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} nums_selected:{} expend_nums_to_select:{}  selected_percent:{:.2%} label_pre:{:.2%} select_pre:{:.2%}\n".format(
-                int(step), mAP, top1, top5, top10, top20, nums_to_select, expend_nums_to_select,nums_to_select / len(u_data), label_pre,select_pre))
+                int(step+1), mAP, top1, top5, top10, top20, nums_to_select, expend_nums_to_select,nums_to_select / len(u_data), label_pre,select_pre))
 
         if args.clock:
             train_time = evaluate_start-train_start
             evaluate_time = estimate_start - evaluate_start
             estimate_time = estimate_end-estimate_start
             epoch_time = train_time+estimate_time
-            time_file.write("step:{} train:{} evaluate:{} estimate:{} epoch:{}\n".format(int(step),train_time,evaluate_time,estimate_time,epoch_time))
+            time_file.write("step:{} train:{} evaluate:{} estimate:{} epoch:{}\n".format(int(step+1),train_time,evaluate_time,estimate_time,epoch_time))
 
         if args.gdraw:
             gd.draw(nums_to_select/len(u_data),top1,mAP,label_pre,select_pre)
