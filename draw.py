@@ -98,7 +98,7 @@ def summary_gradually_compare(compare_list,compare_item,save_path,exp_name): #co
             plt.annotate(str(train_name[item][max_point]), xy=(max_point + 1, train_name[item][max_point]))
             x = np.linspace(1, train_name["length"] , train_name["length"])
             plt.plot(x,train_name[item],label=train_name["title"],marker='o')
-        plt.xticks(range(1, max_len+1, round(max_len/10)))
+        # plt.xticks(range(1, max_len+1, round(max_len/10)))
         plt.xlabel("steps")
         plt.ylabel("value(%)")
         plt.title(item)
@@ -111,8 +111,17 @@ def summary_gradually_compare(compare_list,compare_item,save_path,exp_name): #co
     plt.savefig(osp.join(save_path,exp_name),bbox_inches="tight")
     plt.show()
 
-def get_top_value(item_list):
-
+def get_top_value(group,format_data,topvalue_file):
+    top1s = format_data["top1"]
+    mAPs = format_data["mAP"]
+    label_pres = format_data["label_pre"]
+    select_pres = format_data["select_pre"]
+    # print(top1s)
+    max_top1 = np.max(top1s)
+    max_mAP = np.max(mAPs)
+    mean_label_pre = np.mean(label_pres)
+    mean_selecet_pre = np.mean(select_pres)
+    topvalue_file.write('{}\t{}\t{}\t{}\t{}\n'.format(group,max_top1,max_mAP,mean_label_pre,mean_selecet_pre))
 
 
 def main(args):
@@ -136,6 +145,19 @@ def main(args):
             format_data = eval(format_data)  #转为真正的字典
             compare_train.append(format_data)
         summary_gradually_compare(compare_train,compare_item,file_path,args.exp_name)
+
+    elif args.function == 3:   #提取极值数据
+        file_path = osp.join("logs",args.dataset,args.exp_name) # 文件的存储路劲
+        topvalue_file = codecs.open(osp.join(file_path, 'topvalue.txt'), mode='a')  # 如果没有自行创建
+        topvalue_file.write("order\ttop1\tmAP\tmLEA\tselect_pre\n")
+        group_list = os.listdir(file_path)
+        for group in group_list:
+            if  os.path.isfile(osp.join(file_path,group)): continue  #跳过图片文件
+            format_file = codecs.open(osp.join(file_path, group, 'format_data.txt'), 'r', 'utf-8')
+            format_data = '{' + format_file.read() + '}'  # 使其变为字典
+            format_data = eval(format_data)  # 转为真正的字典
+            get_top_value(group,format_data,topvalue_file)
+        topvalue_file.close()
 
 
 
