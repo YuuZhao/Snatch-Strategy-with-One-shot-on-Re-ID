@@ -360,7 +360,9 @@ class EUG():
                 total += 1
                 if self.u_label[i] == int(pred_y[i]):
                     correct += 1
-        acc = correct / total
+        if total == 0:
+            acc = 1
+        else : acc = correct / total
 
         new_train_data = self.l_data + seletcted_data
         print("selected pseudo-labeled data: {} of {} is correct, accuracy: {:0.4f}  new train data: {}".format(

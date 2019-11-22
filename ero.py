@@ -157,10 +157,13 @@ def main(args):
         pred_y, pred_score, label_pre, id_num = eug.estimate_label()
         estimate_end = time.time()
 
-
         new_nums_to_select = min(math.ceil(len(u_data) * args.percent),len(u_data))
-        selected_idx = eug.select_top_data(pred_score, new_nums_to_select)
-        new_train_data, select_pre = eug.generate_new_train_data(selected_idx, pred_y)
+        if new_nums_to_select == 0: # 就是不选的情况下
+            new_train_data = l_data
+            select_pre = 1
+        else:
+            selected_idx = eug.select_top_data(pred_score, new_nums_to_select)
+            new_train_data, select_pre = eug.generate_new_train_data(selected_idx, pred_y)
 
         # 输出该epoch的信息
         data_file.write("step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} nums_selected:{} selected_percent:{:.2%} label_pre:{:.2%} select_pre:{:.2%}\n".format(
