@@ -115,10 +115,10 @@ def main(args):
 
     # 指定输出文件
     # 第三部分要说明关键参数的设定
-    sys.stdout = Logger(osp.join(args.logs_dir, args.dataset,args.exp_name,args.exp_order,'log.txt'.format(args.EF,args.q)))
-    data_file =codecs.open(osp.join(args.logs_dir, args.dataset,args.exp_name,args.exp_order,'data.txt'.format(args.EF,args.q)),mode='a')
+    sys.stdout = Logger(osp.join(args.logs_dir, args.dataset,args.exp_name,args.exp_order,'log'+time.strftime(".%m_%d_%H-%M-%S")+'.txt'))
+    data_file =codecs.open(osp.join(args.logs_dir, args.dataset,args.exp_name,args.exp_order,'data.txt'),mode='a')
     if args.clock :
-        time_file =codecs.open(osp.join(args.logs_dir, args.dataset,args.exp_name,args.exp_order,'time.txt'.format(args.EF,args.q)),mode='a')
+        time_file =codecs.open(osp.join(args.logs_dir, args.dataset,args.exp_name,args.exp_order,'time.txt'),mode='a')
     save_path = osp.join(args.logs_dir, args.dataset,args.exp_name,args.exp_order)
 
     resume_step, ckpt_file = -1, ''
@@ -201,7 +201,7 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Snatch Strategy')
-    parser.add_argument('-d', '--dataset', type=str, default='mars',choices=datasets.names())  #DukeMTMC-VideoReID
+    parser.add_argument('-d', '--dataset', type=str, default='mars',choices=datasets.names())  #s
     parser.add_argument('-b', '--batch-size', type=int, default=16)
     parser.add_argument('--epoch',type=int,default=30)
     parser.add_argument('--step_size',type=int,default=25)
