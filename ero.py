@@ -107,7 +107,8 @@ def main(args):
     NN = len(l_data) + len(u_data)
 
 
-
+    # yml
+    total_step,args.EF,args.q,args.yita,args.step_s = 2,0,0,0,0
 
     # 输出该轮训练关键的提示信息
     print("{} training begin with dataset:{},batch_size:{},epoch:{},step_size:{},max_frames:{},total_step:{},EF:{},q:{},yita:{},step_s:{}".format(args.exp_name,args.dataset,args.batch_size,args.epoch,args.step_size,args.max_frames,total_step,args.EF,args.q,args.yita,args.step_s))
