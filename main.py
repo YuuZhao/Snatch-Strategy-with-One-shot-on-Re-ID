@@ -31,7 +31,7 @@ def resume(args):
     ckpt_file = ""
 
     # find start step
-    files = os.listdir(args.logs_dir)
+    files = os.listdir(osp.join("logs"+args.dataset+args.exp_name+args.exp_order))
     files.sort()
     for filename in files:
         try:
