@@ -128,14 +128,23 @@ def main(args):
     if args.function == 1:  # 提取文件内容,手动存储到data文件
         exp_path = osp.join('logs',args.dataset,args.exp_name)
         group_list = os.listdir(exp_path)
+        if args.exp_order:
+            group_list = args.exp_order
         for group in group_list:
+            if os.path.isfile(osp.join(exp_path, group)): continue  # 跳过图片文件
             data_file = osp.join(exp_path,group,'data.txt')
+            group_files = os.listdir(osp.join(exp_path,group))
+            if "format_data.txt" in group_files:
+                print("format_data.txt in group {} is exsist!".format(group))
+                continue
             gain_data(data_file,exp_path,args.exp_name,group)  # 数据文件, 实验名称,组号 生成格式化数据
 
 
     elif args.function == 2:  # 利用my date 里面的数据绘图
         file_path = osp.join("logs",args.dataset,args.exp_name) # 图像的存储路劲
         group_list = os.listdir(file_path)
+        if args.exp_order:
+            group_list = args.exp_order
         compare_item = ["mAP", "top1", "top5", "top10", "top20", "label_pre", "select_pre", "select_percent"]
         compare_train = []
         for group in group_list:
@@ -151,6 +160,8 @@ def main(args):
         topvalue_file = codecs.open(osp.join(file_path, 'topvalue.txt'), mode='a')  # 如果没有自行创建
         topvalue_file.write("order\ttop1\tmAP\tmLEA\tselect_pre\n")
         group_list = os.listdir(file_path)
+        if args.exp_order:
+            group_list = args.exp_order
         for group in group_list:
             if  os.path.isfile(osp.join(file_path,group)): continue  #跳过图片文件
             format_file = codecs.open(osp.join(file_path, group, 'format_data.txt'), 'r', 'utf-8')
@@ -170,7 +181,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Snatch Strategy')
     parser.add_argument('--dataset', type=str, default='DukeMTMC-VideoReID')
     parser.add_argument('--exp_name', type=str, default='snatch')
-    parser.add_argument('--exp_order',type=int,default=1)
+    parser.add_argument('--exp_order',type=list,default=None)
     parser.add_argument('--function', type=int, default=2)
     main(parser.parse_args())
 
