@@ -31,14 +31,14 @@ def resume(args):
     ckpt_file = ""
 
     # find start step
-    files = os.listdir(osp.join("logs"+args.dataset+args.exp_name+args.exp_order))
+    files = os.listdir(osp.join("logs",args.dataset,args.exp_name,args.exp_order))
     files.sort()
     for filename in files:
         try:
             iter_ = int(pattern.search(filename).groups()[0])
             if iter_ > start_step:
                 start_step = iter_
-                ckpt_file = osp.join(args.logs_dir, filename)
+                ckpt_file = osp.join("logs",args.dataset,args.exp_name,args.exp_order,filename)
         except:
             continue
 
@@ -214,7 +214,7 @@ if __name__ == '__main__':
     parser.add_argument('--logs_dir', type=str, metavar='PATH',default=os.path.join(working_dir, 'logs'))  # 保持日志根目录
     parser.add_argument('--exp_name',type=str,default="gradully_supplement")
     parser.add_argument('--exp_order',type=str,default="1")
-    parser.add_argument('--resume', type=str, default=None)
+    parser.add_argument('--resume', type=bool, default=False)
     parser.add_argument('--mode', type=str, choices=["Classification", "Dissimilarity"], default="Dissimilarity")   #这个考虑要不要取消掉
     parser.add_argument('--max_frames', type=int, default=100)
     parser.add_argument('--clock',type=bool, default=True)  #是否记时

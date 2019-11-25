@@ -31,14 +31,14 @@ def resume(args):
     ckpt_file = ""
 
     # find start step
-    files = os.listdir(osp.join("logs" + args.dataset + args.exp_name + args.exp_order))
+    files = os.listdir(osp.join("logs",args.dataset,args.exp_name,args.exp_order))
     files.sort()
     for filename in files:
         try:
             iter_ = int(pattern.search(filename).groups()[0])
             if iter_ > start_step:
                 start_step = iter_
-                ckpt_file = osp.join(args.logs_dir, filename)
+                ckpt_file = osp.join("logs",args.dataset,args.exp_name,args.exp_order,filename)
         except:
             continue
 
@@ -146,12 +146,14 @@ def main(args):
 
         # 开始训练
         train_start = time.time()
-        eug.train(new_train_data, i+1, epochs=args.epoch, step_size=args.step_size, init_lr=0.1) if i+1 != resume_step else eug.resume(ckpt_file, i+1)
+        # eug.train(new_train_data, i+1, epochs=args.epoch, step_size=args.step_size, init_lr=0.1) if i+1 != resume_step else eug.resume(ckpt_file, i+1)
+        print(ckpt_file)
+        eug.resume(ckpt_file, resume_step)
 
         # 开始评估
         evaluate_start = time.time()
-        # mAP, top1, top5, top10, top20 = 0,0,0,0,0
-        mAP,top1,top5,top10,top20 = eug.evaluate(dataset_all.query, dataset_all.gallery)
+        mAP, top1, top5, top10, top20 = 0,0,0,0,0
+        # mAP,top1,top5,top10,top20 = eug.evaluate(dataset_all.query, dataset_all.gallery)
 
         # 标签估计
         estimate_start = time.time()
@@ -208,7 +210,7 @@ if __name__ == '__main__':
     parser.add_argument('--logs_dir', type=str, metavar='PATH',default=os.path.join(working_dir, 'logs'))  # 保持日志根目录
     parser.add_argument('--exp_name',type=str,default="ero")
     parser.add_argument('--exp_order',type=str,default="1")
-    parser.add_argument('--resume', type=str, default=None)
+    parser.add_argument('--resume', type=bool, default=False)
     parser.add_argument('--mode', type=str, choices=["Classification", "Dissimilarity"], default="Dissimilarity")   #这个考虑要不要取消掉
     parser.add_argument('--max_frames', type=int, default=400)
     parser.add_argument('--clock',type=bool, default=True)  #是否记时

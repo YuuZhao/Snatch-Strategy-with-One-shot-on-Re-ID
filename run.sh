@@ -11,14 +11,15 @@
 #python3.6 ero.py --exp_order 3 --percent 0.6
 #python3.6 ero.py --exp_order 4 --percent 0.8
 #ero mSA=10%
-#python3.6 ero.py --exp_order 0 --percent 0
-#python3.6 ero.py --exp_order 1 --percent 0.2
-#python3.6 ero.py --exp_order 2 --percent 0.4
-#python3.6 ero.py --exp_order 3 --percent 0.6
-#python3.6 ero.py --exp_order 4 --percent 0.8
+
+#python3.6 ero.py --exp_order 0 --percent 0  --resume Ture
+python3.6 ero.py --exp_order 1 --percent 0.2 --resume Ture
+python3.6 ero.py --exp_order 2 --percent 0.4 --resume Ture
+python3.6 ero.py --exp_order 3 --percent 0.6 --resume Ture
+python3.6 ero.py --exp_order 4 --percent 0.8 --resume Ture
 
 
 
 #draw
 #python3.6 draw.py --dataset DukeMTMC-VideoReID --exp_name gradually_titan --function 1  --exp_order 01
-python3.6 draw.py --dataset mars --exp_name gradully_supplement --function 3  --exp_order 012
+#python3.6 draw.py --dataset mars --exp_name gradully_supplement --function 2 --exp_order 0123
