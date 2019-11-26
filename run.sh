@@ -21,5 +21,5 @@ python3.6 ero.py --exp_order 4 --percent 0.8 --resume Ture
 
 
 #draw
-#python3.6 draw.py --dataset DukeMTMC-VideoReID --exp_name gradually_titan --function 1  --exp_order 01
-#python3.6 draw.py --dataset mars --exp_name gradully_supplement --function 2 --exp_order 0123
+#python3.6 data_draw.py --dataset DukeMTMC-VideoReID --exp_name gradually_titan --function 1  --exp_order 01
+#python3.6 data_draw.py --dataset mars --exp_name gradully_supplement --function 2 --exp_order 0123
