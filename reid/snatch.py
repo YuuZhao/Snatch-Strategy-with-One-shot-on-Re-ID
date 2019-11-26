@@ -187,27 +187,20 @@ class EUG():
             dists.append(dist)
             scores[idx] = - dist[index_min]  # "- dist" : more dist means less score
             labels[idx] = self.l_label[index_min] # take the nearest labled neighbor as the prediction label
-            # if a:
-            #     print("labels :-------------------------------------------", labels[idx])
-            #     a = 0
-            #     输出的结果是0.0
-            # count the correct number of Nearest Neighbor prediction
             if self.u_label[idx] == labels[idx]:
                 num_correct_pred +=1
-            # 统计各个id的数量
-            # if str(labels[idx]) in id_num.keys():
-            #     id_num[str(labels[idx])]=id_num[str(labels[idx])]+1 #值加1
-            # else:
-            #     id_num[str(labels[idx])]=1
-
 
         print("{} predictions on all the unlabeled data: {} of {} is correct, accuracy = {:0.3f}".format(
             self.mode, num_correct_pred, u_feas.shape[0], num_correct_pred/u_feas.shape[0]))
-
-        # sorted(id_num.items(),key = lambda item:item[1])
-        # print("id_num:--------------------------------------------id_num----------------- ")
-        # print(id_num)
         dists = np.vstack(dists)
+        diameter =[]
+        for idx,l_fea in enumerate(l_feas):
+            diffs = l_feas -l_fea
+            dist = np.linalg.norm(diffs, axis=1)
+            index_min = np.argmin(dist)
+            diameter.append(dist)
+
+
         return labels, scores,num_correct_pred/u_feas.shape[0],dists
 
     def get_Dissimilarity_result2(self):
@@ -287,6 +280,9 @@ class EUG():
         for i in range(nums_to_select):  #排序,求最前面的n个
             v[index[i]] = 1
         return v.astype('bool')
+
+    def select_top_data_asm(self,pred_score,dists):
+        pass
 
     def select_top_data_nlvm_b1(self,pred_score,dists,new_expend_nums_to_select,new_nums_to_select):
         # pred_score = pred_score.T # if necessary
