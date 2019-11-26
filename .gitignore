@@ -235,3 +235,4 @@ examples/data
 .ckpt
 /run_evaluation.py
 /common_tool.py
+/data_draw.py
