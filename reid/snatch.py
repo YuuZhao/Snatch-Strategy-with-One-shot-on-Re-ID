@@ -49,7 +49,7 @@ class EUG():
         self.batch_size = batch_size
         self.data_height = 256
         self.data_width = 128
-        self.data_workers = 6
+        self.data_workers = 8
 
         # batch size for eval mode. Default is 1.
         self.eval_bs = 1
