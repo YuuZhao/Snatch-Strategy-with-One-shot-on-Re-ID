@@ -236,3 +236,4 @@ examples/data
 /run_evaluation.py
 /common_tool.py
 /data_draw.py
+/run.sh
