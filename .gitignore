@@ -233,3 +233,5 @@ ENV/
 # Project specific
 examples/data
 .ckpt
+/common_tool.py
+/run_evaluation.py
