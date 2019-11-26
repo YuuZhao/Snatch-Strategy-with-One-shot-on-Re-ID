@@ -23,74 +23,7 @@ import matplotlib.pyplot as plt
 import os
 import  codecs
 
-'''start from checkpoint'''
-def resume(args):
-    import re
-    pattern = re.compile(r'step_(\d+)\.ckpt')
-    start_step = -1
-    ckpt_file = ""
-
-    # find start step
-    files = os.listdir(args.logs_dir)
-    files.sort()
-    for filename in files:
-        try:
-            iter_ = int(pattern.search(filename).groups()[0])
-            if iter_ > start_step:
-                start_step = iter_
-                ckpt_file = osp.join(args.logs_dir, filename)
-        except:
-            continue
-
-    # if need resume
-    if start_step >= 0:
-        print("continued from iter step", start_step)
-
-    return start_step, ckpt_file
-
-
-'''动态绘器'''
-class gif_drawer():
-    def __init__(self):
-        plt.ion()
-        self.select_num_percent = [0, 0]
-        self.top1 = [0, 0]
-        self.mAP = [0,0]
-        self.label_pre = [0,0]
-        self.select_pre = [0,1]
-        self.flag = 0
-
-    def draw(self, update_x, update_top1,mAP,label_pre,select_pre):
-        self.select_num_percent[0] = self.select_num_percent[1]
-        self.top1[0] = self.top1[1]
-        self.mAP[0] = self.mAP[1]
-        self.label_pre[0] = self.label_pre[1]
-        self.select_pre[0] = self.select_pre[1]
-        self.select_num_percent[1] = update_x
-        self.top1[1] = update_top1
-        # self.select_num_percent[1] = select_num_percent
-        self.mAP[1] = mAP
-        self.label_pre[1] = label_pre
-        self.select_pre[1] = select_pre
-
-        plt.title("Performance monitoring")
-        plt.xlabel("select_percent(%)")
-        plt.ylabel("value(%)")
-        plt.plot(self.select_num_percent, self.top1, c="r", marker ='o',label="top1")
-        plt.plot(self.select_num_percent, self.mAP, c="y", marker ='o',label="mAP")
-        plt.plot(self.select_num_percent, self.label_pre, c="b", marker ='o',label="label_pre")
-        plt.plot(self.select_num_percent, self.select_pre, c="cyan", marker ='o',label="select_pre")
-        if self.flag==0:
-            plt.legend()
-            self.flag=1
-
-    def saveimage(self,picture_path):
-        plt.savefig(picture_path)
-
-def changetoHSM(secends):
-    m, s = divmod(secends, 60)
-    h, m = divmod(m, 60)
-    return h,m,s
+from common_tool import *
 
 def main(args):
     # 声明动态绘图器
@@ -148,8 +81,8 @@ def main(args):
 
         # 开始评估
         evaluate_start = time.time()
-        mAP, top1, top5, top10, top20 = 0,0,0,0,0
-        # mAP,top1,top5,top10,top20 = eug.evaluate(dataset_all.query, dataset_all.gallery)
+        # mAP, top1, top5, top10, top20 = 0,0,0,0,0
+        mAP,top1,top5,top10,top20 = eug.evaluate(dataset_all.query, dataset_all.gallery)
 
         # 标签估计
         estimate_start = time.time()
@@ -212,13 +145,13 @@ if __name__ == '__main__':
     parser.add_argument('--step_size',type=int,default=30)
     parser.add_argument('--EF', type=float, default=10)  # 渐进采样系数
     parser.add_argument('--q', type=float, default=1)  # 渐进采样指数
-    parser.add_argument('--percent_vari', type=float, default=0.9)   # 方差的筛选范围.
+    parser.add_argument('--percent_vari', type=float, default=0.8)   # 方差的筛选范围.
     working_dir = os.path.dirname(os.path.abspath(__file__))
     parser.add_argument('--data_dir', type=str, metavar='PATH',default=os.path.join(working_dir, 'data'))  # 加载数据集的根目录
     parser.add_argument('--logs_dir', type=str, metavar='PATH',default=os.path.join(working_dir, 'logs'))  # 保持日志根目录
     parser.add_argument('--exp_name',type=str,default="nlvm-b2")
     parser.add_argument('--exp_order',type=str,default="1")
-    parser.add_argument('--resume', type=str, default=None)
+    parser.add_argument('--resume', type=bool, default=False)
     parser.add_argument('--mode', type=str, choices=["Classification", "Dissimilarity"], default="Dissimilarity")   #这个考虑要不要取消掉
     parser.add_argument('--max_frames', type=int, default=400)
     parser.add_argument('--clock',type=bool, default=True)  #是否记时
