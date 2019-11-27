@@ -32,9 +32,18 @@ def scatter(fts_gp, lbs_gp,cams,lbs,labeled,labeled_lbs):
     plt.scatter(labeled[:,0], labeled[:,1], lw=0, s=2,
                         c='black',marker='.')
 # %%
-fts = np.load('tsne/mars/Dissimilarity_step_0_fts.npy')
-lbs = np.load('tsne/mars/Dissimilarity_step_0_lbs.npy')
-cams = np.load('tsne/mars/Dissimilarity_step_0_cams.npy')
+data_set = 'mars'
+group_name = '03'
+fts1 = np.load('tsne/{}/{}/fts_1.npy'.format(data_set,group_name))
+lbs1 = np.load('tsne/{}/{}/lbs_1.npy'.format(data_set,group_name))
+cams1 = np.load('tsne/{}/{}/cams_1.npy'.format(data_set,group_name))
+fts2 = np.load('tsne/{}/{}/fts_2.npy'.format(data_set,group_name))
+lbs2 = np.load('tsne/{}/{}/lbs_2.npy'.format(data_set,group_name))
+cams2 = np.load('tsne/{}/{}/cams_2.npy'.format(data_set,group_name))
+fts = np.vstack((fts1,fts2))
+lbs = np.hstack((lbs1,lbs2))
+cams = np.hstack((cams1,cams2))
+
 #%%
 print(lbs.max(),np.unique(lbs).shape)
 # %%
@@ -48,7 +57,7 @@ for cam in np.unique(cams):
     lbs_gp.append(lbs[cam_idx])
 # %%
 scatter(fts_gp, lbs_gp,np.unique(cams),lbs,proj[:625],lbs[:625])
-plt.savefig('tsne/mars/all_feas_tsne-generated.svg', dpi=400,facecolor='white')
+plt.savefig('tsne/{}/{}/all_feas_tsne-generated.svg'.format(data_set,group_name), dpi=400,facecolor='white')
 plt.show()
 
 # %%
