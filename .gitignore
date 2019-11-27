@@ -237,3 +237,4 @@ examples/data
 /common_tool.py
 /data_draw.py
 /run.sh
+/tsne/
