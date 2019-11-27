@@ -48,7 +48,7 @@ def main(args):
     # 指定输出文件
     # 第三部分要说明关键参数的设定
     sys.stdout = Logger(osp.join(args.logs_dir, args.dataset, args.exp_name, args.exp_order,
-                                 'log' + time.strftime(".%m_%d_%H-%M-%S") + '.txt'))
+                                 'log_mSA30%' + time.strftime(".%m_%d_%H-%M-%S") + '.txt'))
     data_file = codecs.open(osp.join(args.logs_dir, args.dataset, args.exp_name, args.exp_order, 'data.txt'), mode='a')
     if args.clock:
         time_file = codecs.open(osp.join(args.logs_dir, args.dataset, args.exp_name, args.exp_order, 'time.txt'),
@@ -93,7 +93,7 @@ def main(args):
         pred_y, pred_score, label_pre, id_num = eug.estimate_label()
         estimate_end = time.time()
 
-        new_nums_to_select = math.ceil(len(u_data) * 0.1)  # 固定选10%的量
+        new_nums_to_select = math.ceil(len(u_data) * 0.3)  # 固定选10%的量
         if new_nums_to_select == 0: # 就是不选的情况下
             new_train_data = l_data
             select_pre = 1
