@@ -69,11 +69,43 @@ def main(args):
     step = 0
     step_size = []
     isout = 0  #用来标记是否应该结束训练
-
+    percent = args.start_percent
+    select_num_list=[]
+    select_num_list.append(nums_to_select)  # 先把0放进去
     # 开始的时间记录
     exp_start = time.time()
+
+    while(percent<=1):
+        print("{} training begin with dataset:{},batch_size:{},epoch:{},step:{}, saved to {}.".format(args.exp_name,
+                                                                                                      args.dataset,
+                                                                                                      args.batch_size,
+                                                                                                      args.epoch,
+                                                                                                      step + 1,
+                                                                                                      save_path))
+        print("key parameters contain Current percent:{}. Nums_been_selected:{}".format(percent,nums_to_select))
+        # 开始训练
+        train_start = time.time()
+        eug.train(new_train_data, step, epochs=args.epoch, step_size=args.step_size,
+                  init_lr=0.1) if step != resume_step else eug.resume(ckpt_file, step)   # 按照这个方法,是没有办法resume的. 因为select_num_list 无法恢复
+        # 开始评估
+        evaluate_start = time.time()
+        # mAP, top1, top5, top10, top20 = 0,0,0,0,0
+        mAP, top1, top5, top10, top20 = eug.evaluate(dataset_all.query, dataset_all.gallery)
+        # 标签估计
+
+        estimate_start = time.time()
+        # pred_y, pred_score, label_pre, id_num = 0,0,0,0
+        pred_y, pred_score, label_pre, dists, min_diameter = eug.estimate_label()
+        estimate_end = time.time()
+
+        selected_idx, select_num = eug.select_top_data_asm(pred_score, dists)  # return the select index and the select quantity.
+        new_train_data, select_pre = eug.generate_new_train_data(selected_idx, pred_y)
+
+        if xxxx:
+            percent = percent+0.1 #采样范围加大.
+
     while(not isout):
-        print("{} training begin with dataset:{},batch_size:{},epoch:{},step:{}/{} saved to {}.".format(args.exp_name,args.dataset,args.batch_size, args.epoch,step+1,total_step+1,save_path))
+        print("{} training begin with dataset:{},batch_size:{},epoch:{},step:{}, saved to {}.".format(args.exp_name,args.dataset,args.batch_size, args.epoch,step+1,save_path))
         print("key parameters contain EF:{},q:{},percent_vari:{}. Nums_been_selected:{}".format(args.EF,args.q,args.percent_vari,nums_to_select))
 
         # 开始训练
@@ -141,9 +173,7 @@ if __name__ == '__main__':
     parser.add_argument('-b', '--batch-size', type=int, default=16)
     parser.add_argument('--epoch',type=int,default=40)
     parser.add_argument('--step_size',type=int,default=30)
-    parser.add_argument('--EF', type=float, default=10)  # 渐进采样系数
-    parser.add_argument('--q', type=float, default=1)  # 渐进采样指数
-    parser.add_argument('--percent_vari', type=float, default=0.8)   # 方差的筛选范围.
+    parser.add_argument('--start_percent', type=float, default=0.8)   # 起始百分百.
     working_dir = os.path.dirname(os.path.abspath(__file__))
     parser.add_argument('--data_dir', type=str, metavar='PATH',default=os.path.join(working_dir, 'data'))  # 加载数据集的根目录
     parser.add_argument('--logs_dir', type=str, metavar='PATH',default=os.path.join(working_dir, 'logs'))  # 保持日志根目录

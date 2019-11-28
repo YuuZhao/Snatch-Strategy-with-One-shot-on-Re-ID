@@ -197,11 +197,12 @@ class EUG():
         for idx,l_fea in enumerate(l_feas):
             diffs = l_feas -l_fea
             dist = np.linalg.norm(diffs, axis=1)
-            index_min = np.argmin(dist)
-            diameter.append(dist)
+            dist.sort()
+            min_di = dist[1] # 取第二小的元素,非零最小值
+            diameter.append(min_di)
 
-
-        return labels, scores,num_correct_pred/u_feas.shape[0],dists
+        min_d = np.min(diameter)  # 取出全局最小值
+        return labels, scores,num_correct_pred/u_feas.shape[0],dists,min_d
 
     def get_Dissimilarity_result2(self):
         # l_feas_file = codecs.open("logs/l_feas/test1.txt",'a')
@@ -263,7 +264,7 @@ class EUG():
 
         if self.mode == "Dissimilarity":
             # predict label by dissimilarity cost
-            [pred_label, pred_score,label_pre,id_num] = self.get_Dissimilarity_result()
+            [pred_label, pred_score,label_pre,id_num,min_d] = self.get_Dissimilarity_result()
 
         elif self.mode == "Classification":
             # predict label by classification
@@ -271,7 +272,7 @@ class EUG():
         else:
             raise ValueError
 
-        return pred_label, pred_score,label_pre,id_num
+        return pred_label, pred_score,label_pre,id_num,min_d
 
 
     def select_top_data(self, pred_score, nums_to_select):
