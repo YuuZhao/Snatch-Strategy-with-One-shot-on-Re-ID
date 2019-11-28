@@ -108,11 +108,11 @@ def main(args):
         # select_pre =0
 
         # 输出该epoch的信息
-        data_file.write("step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} nums_selected:{} expend_nums_to_select:{} selected_percent:{:.2%} label_pre:{:.2%} select_pre:{:.2%}\n".format(
-                int(step+1), mAP, top1, top5,top10,top20,nums_to_select, expend_nums_to_select,nums_to_select/len(u_data),label_pre,select_pre))
+        data_file.write("step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} nums_selected:{} real_percent_vari:{} expend_nums_to_select:{} selected_percent:{:.2%} label_pre:{:.2%} select_pre:{:.2%}\n".format(
+                int(step+1), mAP, top1, top5,top10,top20,nums_to_select,real_percent_vari, expend_nums_to_select,nums_to_select/len(u_data),label_pre,select_pre))
         print(
-            "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} nums_selected:{} expend_nums_to_select:{}  selected_percent:{:.2%} label_pre:{:.2%} select_pre:{:.2%}\n".format(
-                int(step+1), mAP, top1, top5, top10, top20, nums_to_select, expend_nums_to_select,nums_to_select / len(u_data), label_pre,select_pre))
+            "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} nums_selected:{} real_percent_vari:{}  expend_nums_to_select:{}  selected_percent:{:.2%} label_pre:{:.2%} select_pre:{:.2%}\n".format(
+                int(step+1), mAP, top1, top5, top10, top20, nums_to_select, real_percent_vari,expend_nums_to_select,nums_to_select / len(u_data), label_pre,select_pre))
 
         if args.clock:
             train_time = evaluate_start-train_start
