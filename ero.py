@@ -84,8 +84,8 @@ def main(args):
 
         # 开始评估
         evaluate_start = time.time()
-        mAP, top1, top5, top10, top20 = 0,0,0,0,0
-        # mAP,top1,top5,top10,top20 = eug.evaluate(dataset_all.query, dataset_all.gallery)
+        # mAP, top1, top5, top10, top20 = 0,0,0,0,0
+        mAP,top1,top5,top10,top20 = eug.evaluate(dataset_all.query, dataset_all.gallery)
 
         # 标签估计
         estimate_start = time.time()
@@ -102,8 +102,8 @@ def main(args):
             new_train_data, select_pre = eug.generate_new_train_data(selected_idx, pred_y)
 
         # 输出该epoch的信息
-        # data_file.write("step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} nums_selected:{} selected_percent:{:.2%} label_pre:{:.2%} select_pre:{:.2%}\n".format(
-        #         int(i+1), mAP, top1, top5,top10,top20,nums_to_select, nums_to_select/len(u_data),label_pre,select_pre))
+        data_file.write("step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} nums_selected:{} selected_percent:{:.2%} label_pre:{:.2%} select_pre:{:.2%}\n".format(
+                int(i+1), mAP, top1, top5,top10,top20,nums_to_select, nums_to_select/len(u_data),label_pre,select_pre))
         print(
             "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} nums_selected:{} selected_percent:{:.2%} label_pre:{:.2%} select_pre:{:.2%}\n".format(
                 int(i+1), mAP, top1, top5, top10, top20, nums_to_select, nums_to_select / len(u_data), label_pre,select_pre))
