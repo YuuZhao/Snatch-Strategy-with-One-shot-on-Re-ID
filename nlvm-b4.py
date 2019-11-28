@@ -102,6 +102,7 @@ def main(args):
             new_expend_nums_to_select = min(len(u_data), math.ceil(new_nums_to_select / real_percent_vari))
             selected_idx = eug.select_top_data_nlvm_b1(pred_score,dists, new_expend_nums_to_select,new_nums_to_select)
         else :
+            real_percent_vari =1
             new_expend_nums_to_select =0
             selected_idx = eug.select_top_data(pred_score,new_nums_to_select)
         new_train_data, select_pre = eug.generate_new_train_data(selected_idx, pred_y)
