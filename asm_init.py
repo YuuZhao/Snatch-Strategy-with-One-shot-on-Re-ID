@@ -70,6 +70,8 @@ def main(args):
     step_size = []
     isout = 0  #用来标记是否应该结束训练
     percent = args.start_percent
+    select_num_list=[]
+    select_num_list.append(nums_to_select)  # 先把0放进去
     # 开始的时间记录
     exp_start = time.time()
 
@@ -140,7 +142,7 @@ if __name__ == '__main__':
     parser.add_argument('-b', '--batch-size', type=int, default=16)
     parser.add_argument('--epoch',type=int,default=40)
     parser.add_argument('--step_size',type=int,default=30)
-    parser.add_argument('--start_percent', type=float, default=0.5)   # 起始百分百.
+    parser.add_argument('--start_percent', type=float, default=1)   # 起始百分百.
     parser.add_argument('--select_add', type=float, default=0.1)   # 起始百分百. 控制选择数量的增长速度.
     working_dir = os.path.dirname(os.path.abspath(__file__))
     parser.add_argument('--data_dir', type=str, metavar='PATH',default=os.path.join(working_dir, 'data'))  # 加载数据集的根目录
