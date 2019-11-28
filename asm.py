@@ -28,7 +28,7 @@ from  common_tool import *
 
 def main(args):
     # 声明动态绘图器
-    gd = gif_drawer()
+    # gd = gif_drawer()
     cudnn.benchmark = True
     cudnn.enabled = True
 
@@ -39,11 +39,11 @@ def main(args):
     NN = len(l_data) + len(u_data)
 
     # 总的训练step数的计算
-    total_step = math.ceil(math.pow((100 / args.EF), (1 / args.q)))   # 这里应该取上限或者 +2  多一轮进行one-shot训练的  # EUG base 采样策略
+    # total_step = math.ceil(math.pow((100 / args.EF), (1 / args.q)))   # 这里应该取上限或者 +2  多一轮进行one-shot训练的  # EUG base 采样策略
     # total_step = math.ceil((2 * NN * args.step_s + args.yita + len(u_data)) / (args.yita + NN + len(l_data))) + 2 # big start 策略
 
     # 输出该轮训练关键的提示信息
-    print("{} training begin with dataset:{},batch_size:{},epoch:{},step_size:{},max_frames:{},total_step:{},EF:{},q:{},percent_vari:{}".format(args.exp_name,args.dataset,args.batch_size,args.epoch,args.step_size,args.max_frames,total_step+1,args.EF,args.q,args.percent_vari))
+    print("{} training begin with dataset:{},batch_size:{},epoch:{},step_size:{},max_frames:{}".format(args.exp_name,args.dataset,args.batch_size,args.epoch,args.step_size,args.max_frames))
 
     # 指定输出文件
     # 第三部分要说明关键参数的设定
