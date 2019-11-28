@@ -202,7 +202,7 @@ class EUG():
             diameter.append(min_di)
 
         min_d = np.min(diameter)  # 取出全局最小值
-        return labels, scores,num_correct_pred/u_feas.shape[0],dists,min_d
+        return labels,scores,num_correct_pred/u_feas.shape[0],dists,min_d
 
     def get_Dissimilarity_result2(self):
         # l_feas_file = codecs.open("logs/l_feas/test1.txt",'a')
@@ -282,8 +282,15 @@ class EUG():
             v[index[i]] = 1
         return v.astype('bool')
 
-    def select_top_data_asm(self,pred_score,dists):
-        pass
+    def select_top_data_asm(self,pred_score,min_diameter,percent):
+        v = np.zeros(len(pred_score)) # used to mark whether is selected.
+        select_num = 0
+        for i in range(len(pred_score)):
+            if  pred_score[i] <= min_diameter * percent:
+                v[i] = 1
+                select_num=select_num+1
+        return v.astype('bool'),select_num
+
 
     def select_top_data_nlvm_b1(self,pred_score,dists,new_expend_nums_to_select,new_nums_to_select):
         # pred_score = pred_score.T # if necessary
