@@ -48,7 +48,7 @@ def main(args):
     # 指定输出文件
     # 第三部分要说明关键参数的设定
     sys.stdout = Logger(osp.join(args.logs_dir, args.dataset, args.exp_name, args.exp_order,
-                                 'log' + time.strftime(".%m_%d_%H-%M-%S") + '.txt'))
+                                 'log_mSA30%' + time.strftime(".%m_%d_%H-%M-%S") + '.txt'))
     data_file = codecs.open(osp.join(args.logs_dir, args.dataset, args.exp_name, args.exp_order, 'data.txt'), mode='a')
     if args.clock:
         time_file = codecs.open(osp.join(args.logs_dir, args.dataset, args.exp_name, args.exp_order, 'time.txt'),
@@ -72,15 +72,15 @@ def main(args):
 
     # 开始的时间记录
     exp_start = time.time()
-    for i in range(2): # 循环两次
+    for i in range(1): # 循环两次
         print("{} training begin with dataset:{},batch_size:{},epoch:{},step:{}/{} saved to {}.".format(args.exp_name,args.dataset,args.batch_size, args.epoch,i+1,2,save_path))
         print("key parameters contain sample_percent:{}. Nums_been_selected:{}".format(args.percent,nums_to_select))
 
         # 开始训练
         train_start = time.time()
-        eug.train(new_train_data, i+1, epochs=args.epoch, step_size=args.step_size, init_lr=0.1) if i+1 != resume_step else eug.resume(ckpt_file, i+1)
-        # print(ckpt_file)
-        # eug.resume(ckpt_file, resume_step)
+        # eug.train(new_train_data, i+1, epochs=args.epoch, step_size=args.step_size, init_lr=0.1) if i+1 != resume_step else eug.resume(ckpt_file, i+1)
+        print(ckpt_file)
+        eug.resume(ckpt_file, resume_step)
 
         # 开始评估
         evaluate_start = time.time()
@@ -93,7 +93,7 @@ def main(args):
         pred_y, pred_score, label_pre, id_num = eug.estimate_label()
         estimate_end = time.time()
 
-        new_nums_to_select = math.ceil(len(u_data) * args.percent)  # 固定选10%的量
+        new_nums_to_select = math.ceil(len(u_data) * 0.3)  # 固定选10%的量
         if new_nums_to_select == 0: # 就是不选的情况下
             new_train_data = l_data
             select_pre = 1

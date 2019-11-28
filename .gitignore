@@ -237,3 +237,4 @@ examples/data
 /run_evaluation.py
 /data_draw.py
 /run.sh
+/tsne/
