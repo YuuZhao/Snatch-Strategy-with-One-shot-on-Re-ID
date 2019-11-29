@@ -64,11 +64,12 @@ def main(args):
               max_frames=args.max_frames)
 
     data_set = 'mars'
-    group_name = '03'
+    group_name = 'step_2'
+    step = group_name.split('_')[1]
     middle = math.ceil(len(l_data) / 2)
     l_data_1 = l_data[:middle]
     l_data_2 = l_data[middle:]
-    eug.resume('tsne/Dissimilarity_step_1.ckpt', 1)
+    eug.resume('tsne/{}/{}/Dissimilarity_step_{}.ckpt'.format(data_set,group_name,step), step)
     print('Extracting features...')
     fts, lbs, cams = eug.get_feature_with_labels_cams(l_data_1)
     print('Saving fts1...')
