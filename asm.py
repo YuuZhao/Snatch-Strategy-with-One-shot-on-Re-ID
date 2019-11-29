@@ -49,8 +49,7 @@ def main(args):
     # 第三部分要说明关键参数的设定
     sys.stdout = Logger(osp.join(args.logs_dir, args.dataset,args.exp_name,args.exp_order,'log'+time.strftime(".%m_%d_%H-%M-%S")+'.txt'))
     data_file =codecs.open(osp.join(args.logs_dir, args.dataset,args.exp_name,args.exp_order,'data.txt'),mode='a')
-    if args.clock :
-        time_file =codecs.open(osp.join(args.logs_dir, args.dataset,args.exp_name,args.exp_order,'time.txt'),mode='a')
+    time_file =codecs.open(osp.join(args.logs_dir, args.dataset,args.exp_name,args.exp_order,'time.txt'),mode='a')
     save_path = osp.join(args.logs_dir, args.dataset,args.exp_name,args.exp_order)
 
     resume_step, ckpt_file = -1, ''
@@ -74,7 +73,7 @@ def main(args):
     exp_start = time.time()
 
     while(not isout):
-        if nums_to_select==len(u_data)  or percent >1:
+        if nums_to_select==len(u_data) or percent>10:
             isout = 1
         print("{} training begin with dataset:{},batch_size:{},epoch:{},step:{}, saved to {}.".format(args.exp_name,
                                                                                                       args.dataset,
@@ -89,8 +88,8 @@ def main(args):
                   init_lr=0.1) if step != resume_step else eug.resume(ckpt_file, step)   # 按照这个方法,是没有办法resume的. 因为select_num_list 无法恢复
         # 开始评估
         evaluate_start = time.time()
-        mAP, top1, top5, top10, top20 = 0,0,0,0,0
-        # mAP, top1, top5, top10, top20 = eug.evaluate(dataset_all.query, dataset_all.gallery)
+        # mAP, top1, top5, top10, top20 = 0,0,0,0,0
+        mAP, top1, top5, top10, top20 = eug.evaluate(dataset_all.query, dataset_all.gallery)
         # 标签估计
 
         estimate_start = time.time()
@@ -98,18 +97,19 @@ def main(args):
         pred_y, pred_score, label_pre, min_diameter = eug.estimate_label()
         estimate_end = time.time()
 
-        selected_idx, select_num = eug.select_top_data_asm(pred_score,min_diameter,percent)  # return the select index and the select quantity.
+        selected_idx, select_num,confidence_cycle = eug.select_top_data_asm(pred_score,min_diameter,percent)  # return the select index and the select quantity.
         new_train_data, select_pre = eug.generate_new_train_data(selected_idx, pred_y)
 
-        if select_num-nums_to_select < len(u_data)* args.select_add:
-            next_percent = percent+0.1 #采样范围加大.
+        next_percent = percent
+        if select_num-nums_to_select < len(u_data)* args.add_threshold:
+            next_percent = percent+args.incremental #采样范围加大.
 
         # 输出该epoch的信息
-        data_file.write("step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} nums_selected:{} select_num:{} min_diameter:{} current_percent:{} selected_percent:{:.2%} label_pre:{:.2%} select_pre:{:.2%}\n".format(
-                int(step+1), mAP, top1, top5,top10,top20,nums_to_select,select_num,min_diameter,percent,nums_to_select/len(u_data),label_pre,select_pre))
+        data_file.write("step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} nums_selected:{} select_num:{} min_diameter:{} confidence_cycle:{} current_percent:{} selected_percent:{:.2%} label_pre:{:.2%} select_pre:{:.2%}\n".format(
+                int(step+1), mAP, top1, top5,top10,top20,nums_to_select,select_num,min_diameter,confidence_cycle,percent,nums_to_select/len(u_data),label_pre,select_pre))
         print(
-            "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} nums_selected:{} select_num:{} min_diameter:{} current_percent:{}  selected_percent:{:.2%} label_pre:{:.2%} select_pre:{:.2%}\n".format(
-                int(step+1), mAP, top1, top5, top10, top20, nums_to_select,select_num,min_diameter,percent,nums_to_select / len(u_data), label_pre,select_pre))
+            "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} nums_selected:{} select_num:{} min_diameter:{}  confidence_cycle:{} current_percent:{}  selected_percent:{:.2%} label_pre:{:.2%} select_pre:{:.2%}\n".format(
+                int(step+1), mAP, top1, top5, top10, top20, nums_to_select,select_num,min_diameter,confidence_cycle,percent,nums_to_select / len(u_data), label_pre,select_pre))
 
         if args.clock:
             train_time = evaluate_start-train_start
@@ -141,7 +141,8 @@ if __name__ == '__main__':
     parser.add_argument('--epoch',type=int,default=40)
     parser.add_argument('--step_size',type=int,default=30)
     parser.add_argument('--start_percent', type=float, default=0.5)   # 起始百分百.
-    parser.add_argument('--select_add', type=float, default=0.1)   # 起始百分百. 控制选择数量的增长速度.
+    parser.add_argument('--add_threshold', type=float, default=0.1)   # 起始百分百. 控制选择数量的增长速度.
+    parser.add_argument('--incremental', type=float, default=0.5)   # 起始百分百. 控制选择数量的增长速度.
     working_dir = os.path.dirname(os.path.abspath(__file__))
     parser.add_argument('--data_dir', type=str, metavar='PATH',default=os.path.join(working_dir, 'data'))  # 加载数据集的根目录
     parser.add_argument('--logs_dir', type=str, metavar='PATH',default=os.path.join(working_dir, 'logs'))  # 保持日志根目录
