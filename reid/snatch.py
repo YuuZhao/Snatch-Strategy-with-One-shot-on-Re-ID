@@ -33,10 +33,10 @@ class EUG():
         self.data_dir = data_dir
         self.save_path = save_path
 
-        self.l_data = l_data
-        self.u_data = u_data
-        self.l_label = np.array([label for _,label,_,_ in l_data])
-        self.u_label = np.array([label for _,label,_,_ in u_data])
+        # self.l_data = l_data
+        # self.u_data = u_data
+        # self.l_label = np.array([label for _,label,_,_ in l_data])
+        # self.u_label = np.array([label for _,label,_,_ in u_data])
 
 
         self.dataloader_params = {}
@@ -88,7 +88,7 @@ class EUG():
         print("create dataloader for {} with batch_size {}".format(current_status, batch_size))
         return data_loader
 
-    def train(self, train_data, step, epochs=10, step_size=55, init_lr=0.1, dropout=0.5):
+    def train(self, train_data, step,tagper=0, epochs=10, step_size=55, init_lr=0.1, dropout=0.5):
 
         """ create model and dataloader """
         model = models.create(self.model_name, dropout=self.dropout, num_classes=self.num_classes, mode=self.mode)
@@ -129,8 +129,10 @@ class EUG():
             adjust_lr(epoch, step_size)
             trainer.train(epoch, dataloader, optimizer)
             # trainer.train(epoch, dataloader, optimizer, print_freq=len(dataloader)//30 * 10)
-
-        torch.save(model.state_dict(), osp.join(self.save_path,  "{}_step_{}.ckpt".format(self.mode, step)))
+        if tagper == 1:
+            save_path = osp.join(self.save_path,'tagper')
+        else: save_path = self.save_path
+        torch.save(model.state_dict(), osp.join(save_path, "{}_step_{}.ckpt".format(self.mode, step)))
         self.model = model
 
 
@@ -140,142 +142,51 @@ class EUG():
         features = np.array([logit.numpy() for logit in features.values()])
         return features
 
-    # def get_Classification_result(self):  #是指的用CNN的分类结果贴标签
-    #     logits = self.get_feature(self.u_data)
-    #     exp_logits = np.exp(logits)
-    #     predict_prob = exp_logits / np.sum(exp_logits,axis=1).reshape((-1,1))
-    #     assert len(logits) == len(predict_prob)
-    #     assert predict_prob.shape[1] == self.num_classes
-    #
-    #     pred_label = np.argmax(predict_prob, axis=1)
-    #     pred_score = predict_prob.max(axis=1)
-    #     print("get_Classification_result", predict_prob.shape)
-    #
-    #
-    #     num_correct_pred = 0
-    #     for idx, p_label in enumerate(pred_label):
-    #         if self.u_label[idx] == p_label:
-    #             num_correct_pred +=1
-    #
-    #
-    #     print("{} predictions on all the unlabeled data: {} of {} is correct, accuracy = {:0.3f}".format(
-    #         self.mode, num_correct_pred, pred_label.shape[0], num_correct_pred/pred_label.shape[0]))
-    #
-    #     return pred_label, pred_score
 
 
 
-    def get_Dissimilarity_result(self):
 
+    def estimate_label(self, u_data,l_data):
         # extract feature
-        u_feas = self.get_feature(self.u_data)
-        l_feas = self.get_feature(self.l_data)
+        u_label = np.array([label for _,label,_,_ in u_data])
+        l_label = np.array([label for _,label,_,_ in l_data])
+        u_feas = self.get_feature(u_data)
+        l_feas = self.get_feature(l_data)
         print("u_features", u_feas.shape, "l_features", l_feas.shape)
 
         scores = np.zeros((u_feas.shape[0]))
         labels = np.zeros((u_feas.shape[0]))
         # 分别用来存 _ufeas的分数和标签
 
-        id_num = {}  #以标签名称作为字典
+        id_num = {}  # 以标签名称作为字典
         # a = 1
         num_correct_pred = 0
         for idx, u_fea in enumerate(u_feas):
             diffs = l_feas - u_fea
-            dist = np.linalg.norm(diffs,axis=1)
+            dist = np.linalg.norm(diffs, axis=1)
             index_min = np.argmin(dist)
             scores[idx] = - dist[index_min]  # "- dist" : more dist means less score
-            labels[idx] = self.l_label[index_min] # take the nearest labled neighbor as the prediction label
+            labels[idx] = l_label[index_min]  # take the nearest labled neighbor as the prediction label
             # if a:
             #     print("labels :-------------------------------------------", labels[idx])
             #     a = 0
             #     输出的结果是0.0
             # count the correct number of Nearest Neighbor prediction
-            if self.u_label[idx] == labels[idx]:
-                num_correct_pred +=1
+            if u_label[idx] == labels[idx]:
+                num_correct_pred += 1
             # 统计各个id的数量
             if str(labels[idx]) in id_num.keys():
-                id_num[str(labels[idx])]=id_num[str(labels[idx])]+1 #值加1
+                id_num[str(labels[idx])] = id_num[str(labels[idx])] + 1  # 值加1
             else:
-                id_num[str(labels[idx])] =1
-
+                id_num[str(labels[idx])] = 1
 
         print("{} predictions on all the unlabeled data: {} of {} is correct, accuracy = {:0.3f}".format(
-            self.mode, num_correct_pred, u_feas.shape[0], num_correct_pred/u_feas.shape[0]))
+            self.mode, num_correct_pred, u_feas.shape[0], num_correct_pred / u_feas.shape[0]))
 
-        sorted(id_num.items(),key = lambda item:item[1])
+        sorted(id_num.items(), key=lambda item: item[1])
         # print("id_num:--------------------------------------------id_num----------------- ")
         # print(id_num)
-        return labels, scores,num_correct_pred/u_feas.shape[0],id_num
-
-    def get_Dissimilarity_result2(self):
-        # l_feas_file = codecs.open("logs/l_feas/test1.txt",'a')
-        # extract feature
-        u_feas = self.get_feature(self.u_data)
-        l_feas = self.get_feature(self.l_data)
-        l_mean = l_feas.mean(axis=0)
-        l_std = l_feas.std(axis=0)
-        l_feas -= l_mean
-        l_feas /= l_std
-        # np.save("logs/l_feas/test1.npy",l_feas)
-        print("u_features", u_feas.shape, "l_features", l_feas.shape)
-        scores = np.zeros((u_feas.shape[0]))
-        labels = np.zeros((u_feas.shape[0]))
-        # 分别用来存 _ufeas的分数和标签
-        id_num = {}  #以标签名称作为字典
-        num_correct_pred = 0
-        for idx, u_fea in enumerate(u_feas):
-            # dist = []
-            # for l_fea in l_feas:
-            #     d = np.dot(l_fea,u_fea)/(np.linalg.norm(l_fea)*(np.linalg.norm(u_fea)))
-            #     dist.appen(d)
-            # dist = cosine_similarity(l_feas,u_fea) #维度不对
-            # dist = cosine_similarity(l_feas,np.array([u_fea])).reshape(-1)
-            # print("----------------------------------------------------dist:{}".format(dist))
-            u_fea -=l_mean
-            u_fea /=l_std
-            diffs = l_feas - u_fea
-            dist = np.linalg.norm(diffs,axis=1)
-            index_min = np.argmin(dist)
-            scores[idx] = - dist[index_min]  # "- dist" : more dist means less score
-            labels[idx] = self.l_label[index_min] # take the nearest labled neighbor as the prediction label
-            # if a:
-            #     print("labels :-------------------------------------------", labels[idx])
-            #     a = 0
-            #     输出的结果是0.0
-            # count the correct number of Nearest Neighbor prediction
-            if self.u_label[idx] == labels[idx]:
-                num_correct_pred +=1
-            # 统计各个id的数量
-            if str(labels[idx]) in id_num.keys():
-                id_num[str(labels[idx])]=id_num[str(labels[idx])]+1 #值加1
-            else:
-                id_num[str(labels[idx])] =1
-
-
-        print("{} predictions on all the unlabeled data: {} of {} is correct, accuracy = {:0.3f}".format(
-            self.mode, num_correct_pred, u_feas.shape[0], num_correct_pred/u_feas.shape[0]))
-
-        sorted(id_num.items(),key = lambda item:item[1])
-        # print("id_num:--------------------------------------------id_num----------------- ")
-        # print(id_num)
-        return labels, scores,num_correct_pred/u_feas.shape[0],id_num
-
-
-    def estimate_label(self):
-
-        print("label estimation by {} mode.".format(self.mode))
-
-        if self.mode == "Dissimilarity":
-            # predict label by dissimilarity cost
-            [pred_label, pred_score,label_pre,id_num] = self.get_Dissimilarity_result2()
-
-        elif self.mode == "Classification":
-            # predict label by classification
-            [pred_label, pred_score] = self.get_Classification_result()
-        else:
-            raise ValueError
-
-        return pred_label, pred_score,label_pre,id_num
+        return labels, scores, num_correct_pred / u_feas.shape[0], id_num
 
 
     def select_top_data(self, pred_score, nums_to_select):
@@ -284,6 +195,9 @@ class EUG():
         for i in range(nums_to_select):  #排序,求最前面的n个
             v[index[i]] = 1
         return v.astype('bool')
+
+
+
 
     def select_top_data_NLVM(self, pred_score, nums_to_select, percent_P = 0.1, percent_N = 0.1):
         # pred_score = pred_score.T # if necessary
@@ -349,26 +263,46 @@ class EUG():
 
 
 
-    def generate_new_train_data(self, sel_idx, pred_y):
+    def generate_new_train_data(self, sel_idx, pred_y,u_data):
         """ generate the next training data """
-
+        u_label =  np.array([label for _,label,_,_ in u_data])
         seletcted_data = []
         correct, total = 0, 0
         for i, flag in enumerate(sel_idx):
             if flag: # if selected
-                seletcted_data.append([self.u_data[i][0], int(pred_y[i]), self.u_data[i][2], self.u_data[i][3]])
+                seletcted_data.append([u_data[i][0], int(pred_y[i]), u_data[i][2], u_data[i][3]])
                 total += 1
-                if self.u_label[i] == int(pred_y[i]):
+                if u_label[i] == int(pred_y[i]):
                     correct += 1
         if total == 0:
             acc = 1
         else : acc = correct / total
 
-        new_train_data = self.l_data + seletcted_data
+        new_train_data = seletcted_data
         print("selected pseudo-labeled data: {} of {} is correct, accuracy: {:0.4f}  new train data: {}".format(
                 correct, len(seletcted_data), acc, len(new_train_data)))
 
         return new_train_data,acc
+
+    def move_unlabel_to_label(self, sel_idx, pred_y,u_data,one_shot):
+        u_label = np.array([label for _, label, _, _ in u_data])
+        selected_data =[]
+        correct,total = 0,0
+        for i,flag in enumerate(sel_idx):
+            if flag:
+                selected_data.append([u_data[i][0], int(pred_y[i]), u_data[i][2], u_data[i][3]])
+                total +=1
+                if (u_label[i] ==int(pred_y[i])):
+                    correct +=1
+        if total == 0:
+            acc = 1
+        else: acc = correct/total
+        new_one_shot = one_shot + selected_data
+        new_u_data = [u_data[i] for i in range(len(u_data)) if (sel_idx[i] == False)]
+        return  new_one_shot,new_u_data,acc
+
+
+
 
     def resume(self, ckpt_file, step):
         print("continued from step", step)
