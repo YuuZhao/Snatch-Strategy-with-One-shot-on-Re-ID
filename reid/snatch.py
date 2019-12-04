@@ -314,7 +314,7 @@ class EUG():
         # pred_score = pred_score.T # if necessary
         # 方案2, 求最近的P%样本的方差
         N_u,N_l = dists.shape
-        vari_num = N_u * percent_vari  # 取前面vari_num个
+        vari_num = round(N_u * percent_vari)  # 取前面vari_num个
         if vari_num <= new_nums_to_select: # 就不需要在判断方差了
             return self.select_top_data(pred_score,new_nums_to_select)
         stds = np.zeros(N_u)
@@ -326,9 +326,31 @@ class EUG():
             topk_idxs = np.argpartition(score, topk)[:topk]
             stds[i] = score[topk_idxs].std()
         idxs = np.argsort(-stds)
-        index = np.argsort( -pred_score[idxs[:vari_num]])  # 分数从大到小排序
+        index = np.argsort(-pred_score[idxs[:vari_num]])  # 分数从大到小排序
         selection[index[:new_nums_to_select]] = True
         return selection
+
+    def select_top_data_nlvm_b6(self,pred_score,dists,new_nums_to_select,percent_vari):
+        # pred_score = pred_score.T # if necessary
+        # 方案2, 求最近的P%样本的方差
+        N_u,N_l = dists.shape
+        vari_num = round(N_u * percent_vari ) # 取前面vari_num个
+        if vari_num <= new_nums_to_select: # 就不需要在判断方差了
+            return self.select_top_data(pred_score,new_nums_to_select)
+        stds = np.zeros(N_u)
+        selection1=selection2 = np.zeros(N_u,'bool')
+        for i in range(N_u):  #对所有的值求方差
+            score = -dists[i]
+            # 求k近邻
+            topk = 2
+            topk_idxs = np.argpartition(score, topk)[:topk]
+            stds[i] = score[topk_idxs].std()
+        idxs = np.argsort(-stds)
+        selection1[idxs[:vari_num]] = True
+        index = np.argsort(-pred_score)  # 分数从大到小排序
+        selection2[index[:new_nums_to_select]] = True
+        selection = selection1 & selection2
+        return selection,np.count_nonzero(selection)
 
     def select_top_data_NLVM(self, pred_score, nums_to_select, percent_P = 0.1, percent_N = 0.1):
         # pred_score = pred_score.T # if necessary

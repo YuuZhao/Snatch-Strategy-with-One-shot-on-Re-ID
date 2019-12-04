@@ -98,12 +98,12 @@ def main(args):
 
         # nums_to_select 的设定
         new_nums_to_select = min(math.ceil(len(u_data) * math.pow((step + 1), args.q) * args.EF / 100),len(u_data))  # EUG 基础指数渐进策略
-        # real_select_num = new_nums_to_select
+        real_select_num = new_nums_to_select
         # new_nums_to_select = min(math.ceil((len(u_data)-args.yita)*(step-1)/(total_step-2))+args.yita,len(u_data))  # big start
         if step < args.stop_vari_step:
             real_percent_vari = min((1-args.percent_vari)*(step)/(args.stop_vari_step)+args.percent_vari,1)
             # new_expend_nums_to_select = min(len(u_data), math.ceil(new_nums_to_select / real_percent_vari))
-            selected_idx = eug.select_top_data_nlvm_b5(pred_score,dists,new_nums_to_select,real_percent_vari)
+            selected_idx,real_select_num = eug.select_top_data_nlvm_b6(pred_score,dists,new_nums_to_select,real_percent_vari)
         else :
             real_percent_vari =1
             # new_expend_nums_to_select =0
@@ -112,11 +112,11 @@ def main(args):
         # select_pre =0
 
         # 输出该epoch的信息
-        data_file.write("step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} nums_selected:{}  real_percent_vari:{} selected_percent:{:.2%} label_pre:{:.2%} select_pre:{:.2%}\n".format(
-                int(step+1), mAP, top1, top5,top10,top20,nums_to_select,real_percent_vari,nums_to_select/len(u_data),label_pre,select_pre))
+        data_file.write("step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} nums_selected:{} real_select_num:{} real_percent_vari:{} selected_percent:{:.2%} label_pre:{:.2%} select_pre:{:.2%}\n".format(
+                int(step+1), mAP, top1, top5,top10,top20,nums_to_select,real_select_num,real_percent_vari,nums_to_select/len(u_data),label_pre,select_pre))
         print(
-            "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} nums_selected:{} real_percent_vari:{} selected_percent:{:.2%} label_pre:{:.2%} select_pre:{:.2%}\n".format(
-                int(step+1), mAP, top1, top5, top10, top20, nums_to_select, real_percent_vari,nums_to_select / len(u_data), label_pre,select_pre))
+            "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} nums_selected:{} real_select_num:{} real_percent_vari:{} selected_percent:{:.2%} label_pre:{:.2%} select_pre:{:.2%}\n".format(
+                int(step+1), mAP, top1, top5, top10, top20, nums_to_select,real_select_num, real_percent_vari,nums_to_select / len(u_data), label_pre,select_pre))
 
         if args.clock:
             train_time = evaluate_start-train_start
