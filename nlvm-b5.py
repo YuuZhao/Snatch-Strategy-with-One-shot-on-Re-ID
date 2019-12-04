@@ -83,8 +83,8 @@ def main(args):
 
         # 开始评估
         evaluate_start = time.time()
-        mAP, top1, top5, top10, top20 = 0,0,0,0,0
-        # mAP,top1,top5,top10,top20 = eug.evaluate(dataset_all.query, dataset_all.gallery)
+        # mAP, top1, top5, top10, top20 = 0,0,0,0,0
+        mAP,top1,top5,top10,top20 = eug.evaluate(dataset_all.query, dataset_all.gallery)
 
         # 标签估计
         estimate_start = time.time()
