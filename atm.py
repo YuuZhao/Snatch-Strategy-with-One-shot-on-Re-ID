@@ -78,11 +78,11 @@ def main(args):
         pred_y, pred_score, label_pre = reid.estimate_label(u_data,l_data) #针对u_data进行标签估计
         reid_end = time.time()
         data_file.write(
-            "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} len(one_shot):{} label_pre:{:.2%}\n".format(
-                int(step + 1), mAP, top1, top5, top10, top20, len(one_shot), label_pre))
+            "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} len(one_shot):{} label_pre:{:.2%} select_pre:{:.2%}\n".format(
+                int(step + 1), mAP, top1, top5, top10, top20, len(one_shot), label_pre,label_pre))
         print(
-            "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} len(one_shot):{} label_pre:{:.2%}\n".format(
-                int(step + 1), mAP, top1, top5, top10, top20, len(one_shot), label_pre))
+            "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} len(one_shot):{} label_pre:{:.2%} select_pre:{:.2%} \n".format(
+                int(step + 1), mAP, top1, top5, top10, top20, len(one_shot), label_pre,label_pre))
 
         if len(u_data)==0:
             continue
@@ -106,10 +106,10 @@ def main(args):
         tapger_end = time.time()
 
         tagper_file.write(
-            "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} len(one_shot):{} label_pre_befor:{:.2%} label_pre_after:{:.2%} select_pre:{}\n".format(
+            "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} len(one_shot):{} label_pre_befor:{:.2%} label_pre:{:.2%} select_pre:{:.2%}\n".format(
                 int(step + 1), mAP, top1, top5, top10, top20, len(one_shot), label_pre_befor,label_pre_after,select_pre))
         print(
-            "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} len(one_shot):{} label_pre_befor:{:.2%} label_pre_after:{:.2%} select_pre:{}\n".format(
+            "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} len(one_shot):{} label_pre_befor:{:.2%} label_pre:{:.2%} select_pre:{:.2%}\n".format(
                 int(step + 1), mAP, top1, top5, top10, top20, len(one_shot), label_pre_befor, label_pre_after,
                 select_pre))
 
