@@ -238,3 +238,4 @@ examples/data
 /data_draw.py
 /run.sh
 /tsne/
+/draw.py

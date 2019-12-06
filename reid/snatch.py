@@ -18,6 +18,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 # import run
 import  math
 import codecs
+import os
 
 
 import ssl
@@ -131,6 +132,8 @@ class EUG():
             # trainer.train(epoch, dataloader, optimizer, print_freq=len(dataloader)//30 * 10)
         if tagper == 1:
             save_path = osp.join(self.save_path,'tagper')
+            if os.path.exists(save_path) is False:
+                os.makedirs(save_path)
         else: save_path = self.save_path
         torch.save(model.state_dict(), osp.join(save_path, "{}_step_{}.ckpt".format(self.mode, step)))
         self.model = model
@@ -175,18 +178,20 @@ class EUG():
             if u_label[idx] == labels[idx]:
                 num_correct_pred += 1
             # 统计各个id的数量
-            if str(labels[idx]) in id_num.keys():
-                id_num[str(labels[idx])] = id_num[str(labels[idx])] + 1  # 值加1
-            else:
-                id_num[str(labels[idx])] = 1
-
+            # if str(labels[idx]) in id_num.keys():
+            #     id_num[str(labels[idx])] = id_num[str(labels[idx])] + 1  # 值加1
+            # else:
+            #     id_num[str(labels[idx])] = 1
+        label_pre = 0
+        if u_feas.shape[0] != 0:
+            label_pre = num_correct_pred / u_feas.shape[0]
         print("{} predictions on all the unlabeled data: {} of {} is correct, accuracy = {:0.3f}".format(
-            self.mode, num_correct_pred, u_feas.shape[0], num_correct_pred / u_feas.shape[0]))
+            self.mode, num_correct_pred, u_feas.shape[0], label_pre))
 
         sorted(id_num.items(), key=lambda item: item[1])
         # print("id_num:--------------------------------------------id_num----------------- ")
         # print(id_num)
-        return labels, scores, num_correct_pred / u_feas.shape[0], id_num
+        return labels, scores, label_pre
 
 
     def select_top_data(self, pred_score, nums_to_select):

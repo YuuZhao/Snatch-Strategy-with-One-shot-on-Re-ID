@@ -51,7 +51,7 @@ def main(args):
     time_file =codecs.open(osp.join(reid_path,'time.txt'),mode='a')
     # save_path = reid_path
     tagper_path = osp.join(reid_path,'tagper')
-    tagper_file = codecs.open(osp.join(tagper_path,"tagper_data.txt"),mode='a')
+    tagper_file = codecs.open(osp.join(reid_path,"tagper_data.txt"),mode='a')
 
     resume_step, ckpt_file = -1, ''
     if args.resume:  # 重新训练的时候用
@@ -75,8 +75,7 @@ def main(args):
         # mAP, top1, top5, top10, top20 = 0,0,0,0,0
         mAP,top1,top5,top10,top20 = reid.evaluate(dataset_all.query, dataset_all.gallery)
         # 标签估计
-        # pred_y, pred_score, label_pre, id_num = 0,0,0,0
-        pred_y, pred_score, label_pre, id_num = reid.estimate_label(u_data,l_data) #针对u_data进行标签估计
+        pred_y, pred_score, label_pre = reid.estimate_label(u_data,l_data) #针对u_data进行标签估计
         reid_end = time.time()
         data_file.write(
             "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} len(one_shot):{} label_pre:{:.2%}\n".format(
@@ -95,8 +94,9 @@ def main(args):
         new_train_data, label_pre_befor = tapger.generate_new_train_data(selected_idx, pred_y,u_data)   #这个选择准确率应该是和前面的label_pre是一样的.
         train_data = new_train_data+one_shot
         tapger.train(train_data,step,tagper=1,epochs=args.epoch, step_size=args.step_size, init_lr=0.1)
+        # mAP, top1, top5, top10, top20 = 0, 0, 0, 0, 0
         mAP, top1, top5, top10, top20 = tapger.evaluate(dataset_all.query, dataset_all.gallery)
-        pred_y, pred_score, label_pre_after, id_num = tapger.estimate_label(u_data,l_data)
+        pred_y, pred_score, label_pre_after = tapger.estimate_label(u_data,l_data)
 
         #下面正对 reid 移动数据.
         if len(u_data) < add_num:
@@ -134,10 +134,10 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Snatch Strategy')
-    parser.add_argument('-d', '--dataset', type=str, default='mars',choices=datasets.names())  #s
+    parser.add_argument('-d', '--dataset', type=str, default='DukeMTMC-VideoReID',choices=datasets.names())  #s
     parser.add_argument('-b', '--batch-size', type=int, default=16)
-    parser.add_argument('--epoch',type=int,default=30)
-    parser.add_argument('--step_size',type=int,default=25)
+    parser.add_argument('--epoch',type=int,default=40)
+    parser.add_argument('--step_size',type=int,default=30)
     working_dir = os.path.dirname(os.path.abspath(__file__))
     parser.add_argument('--data_dir', type=str, metavar='PATH',default=os.path.join(working_dir, 'data'))  # 加载数据集的根目录
     parser.add_argument('--logs_dir', type=str, metavar='PATH',default=os.path.join(working_dir, 'logs'))  # 保持日志根目录
