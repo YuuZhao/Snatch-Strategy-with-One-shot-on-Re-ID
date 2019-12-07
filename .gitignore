@@ -239,3 +239,5 @@ examples/data
 /run.sh
 /tsne/
 /draw.py
+/draw_paper.py
+/draw_atm.py
