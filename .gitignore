@@ -238,3 +238,5 @@ examples/data
 /data_draw.py
 /run.sh
 /tsne/
+/draw_paper.py
+/gradual_lines.png
