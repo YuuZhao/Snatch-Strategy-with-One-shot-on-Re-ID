@@ -77,7 +77,7 @@ def main(args):
         # mAP, top1, top5, top10, top20 = 0,0,0,0,0
         mAP,top1,top5,top10,top20 = reid.evaluate(dataset_all.query, dataset_all.gallery)
         # 标签估计
-        pred_y, pred_score, label_pre = reid.estimate_label(u_data,l_data) #针对u_data进行标签估计
+        pred_y, pred_score, label_pre = reid.estimate_label(u_data,one_shot) #针对u_data进行标签估计
         reid_end = time.time()
         data_file.write(
             "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} len(one_shot):{} label_pre:{:.2%} select_pre:{:.2%}\n".format(
@@ -98,7 +98,7 @@ def main(args):
         tapger.train(train_data,step,tagper=1,epochs=args.epoch, step_size=args.step_size, init_lr=0.1)
         # mAP, top1, top5, top10, top20 = 0, 0, 0, 0, 0
         mAP, top1, top5, top10, top20 = tapger.evaluate(dataset_all.query, dataset_all.gallery)
-        pred_y, pred_score, label_pre_after = tapger.estimate_label(u_data,l_data)
+        pred_y, pred_score, label_pre_after = tapger.estimate_label(u_data,one_shot)
 
         #下面正对 reid 移动数据.
         if len(u_data) < add_num:
