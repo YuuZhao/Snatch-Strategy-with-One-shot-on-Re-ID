@@ -145,7 +145,85 @@ class EUG():
         features = np.array([logit.numpy() for logit in features.values()])
         return features
 
+    def estimate_label_atm(self, u_data,l_data,one_shot):  #根据聚类中心距离打标签
+        if len(l_data)==0:
+            return  self.estimate_label(u_data,one_shot)
+        # extract feature
+        # l_data = one_shot+l_data    #把带标注的样本和起来
 
+        u_feas = self.get_feature(u_data)
+        l_feas = self.get_feature(l_data)
+        o_feas = self.get_feature(one_shot)
+        l_feas = np.vstack((o_feas,l_feas))
+        l_data = one_shot+l_data
+
+        o_label = np.array([label for _, label, _, _ in one_shot])
+        u_label = np.array([label for _, label, _, _ in u_data])
+        l_label = np.array([label for _, label, _, _ in l_data])
+        for idex,o_fea in enumerate(o_feas):
+            o_feas[idex] = l_feas[l_label==o_label[idex]].mean(axis=0)
+        print("u_features", u_feas.shape, "l_features", l_feas.shape)
+        scores = np.zeros((u_feas.shape[0]))
+        labels = np.zeros((u_feas.shape[0]))
+        id_num = {}  # 以标签名称作为字典
+        num_correct_pred = 0
+        for idx, u_fea in enumerate(u_feas):
+            diffs = o_feas - u_fea
+            dist = np.linalg.norm(diffs, axis=1)
+            index_min = np.argmin(dist)
+            scores[idx] = - dist[index_min]  # "- dist" : more dist means less score
+            labels[idx] = l_label[index_min]  # take the nearest labled neighbor as the prediction label
+            if u_label[idx] == labels[idx]:
+                num_correct_pred += 1
+        label_pre = 0
+        if u_feas.shape[0] != 0:
+            label_pre = num_correct_pred / u_feas.shape[0]
+        print("{} predictions on all the unlabeled data: {} of {} is correct, accuracy = {:0.3f}".format(
+            self.mode, num_correct_pred, u_feas.shape[0], label_pre))
+
+        sorted(id_num.items(), key=lambda item: item[1])
+        # print("id_num:--------------------------------------------id_num----------------- ")
+        # print(id_num)
+        return labels, scores, label_pre
+
+    def estimate_label_atm2(self, u_data,l_data,one_shot):  #根据聚类中心距离打标签
+        if len(l_data)==0:
+            return  self.estimate_label(u_data,one_shot)
+        # extract feature
+        # l_data = one_shot+l_data    #把带标注的样本和起来
+        u_feas = self.get_feature(u_data)
+        l_feas = self.get_feature(l_data)
+        o_feas = self.get_feature(one_shot)
+        l_feas = np.vstack((o_feas,l_feas))
+        l_data = one_shot+l_data
+        o_label = np.array([label for _, label, _, _ in one_shot])
+        u_label = np.array([label for _, label, _, _ in u_data])
+        l_label = np.array([label for _, label, _, _ in l_data])
+        # for idex,o_fea in enumerate(o_feas):
+        #     o_feas[idex] = l_feas[l_label==o_label[idex]].mean(axis=0)
+        print("u_features", u_feas.shape, "l_features", l_feas.shape)
+        scores = np.zeros((u_feas.shape[0]))
+        labels = np.zeros((u_feas.shape[0]))
+        id_num = {}  # 以标签名称作为字典
+        num_correct_pred = 0
+        for idx, u_fea in enumerate(u_feas):
+            diffs = l_feas - u_fea
+            dist = np.linalg.norm(diffs, axis=1)
+            index_min = np.argmin(dist)
+            scores[idx] = - dist[index_min]  # "- dist" : more dist means less score
+            labels[idx] = l_label[index_min]  # take the nearest labled neighbor as the prediction label
+            if u_label[idx] == labels[idx]:
+                num_correct_pred += 1
+        label_pre = 0
+        if u_feas.shape[0] != 0:
+            label_pre = num_correct_pred / u_feas.shape[0]
+        print("{} predictions on all the unlabeled data: {} of {} is correct, accuracy = {:0.3f}".format(
+            self.mode, num_correct_pred, u_feas.shape[0], label_pre))
+
+        sorted(id_num.items(), key=lambda item: item[1])
+        # print("id_num:--------------------------------------------id_num----------------- ")
+        # print(id_num)
+        return labels, scores, label_pre
 
 
 
@@ -289,6 +367,29 @@ class EUG():
 
         return new_train_data,acc
 
+
+    def generate_new_train_data_only(self,sel_idx,pred_y,u_data):
+        u_label = np.array([label for _, label, _, _ in u_data])
+        seletcted_data = []
+        for i,flag in enumerate(sel_idx):
+            if flag:
+                seletcted_data.append([u_data[i][0], int(pred_y[i]), u_data[i][2], u_data[i][3]])
+        return seletcted_data
+
+    def get_select_pre(self,sel_idx,pred_y,u_data):
+        u_label = np.array([label for _, label, _, _ in u_data])
+        correct,total =0,0
+        for i,flag in enumerate(sel_idx):
+            if flag:
+                total +=1
+                if u_label[i] == int(pred_y[i]):
+                    correct +=1
+        if total ==0:
+            acc = 1
+        else: acc = correct /total
+        return acc
+
+
     def move_unlabel_to_label(self, sel_idx, pred_y,u_data,one_shot):
         u_label = np.array([label for _, label, _, _ in u_data])
         selected_data =[]
@@ -300,7 +401,7 @@ class EUG():
                 if (u_label[i] ==int(pred_y[i])):
                     correct +=1
         if total == 0:
-            acc = 1
+            acc = 0
         else: acc = correct/total
         new_one_shot = one_shot + selected_data
         new_u_data = [u_data[i] for i in range(len(u_data)) if (sel_idx[i] == False)]
