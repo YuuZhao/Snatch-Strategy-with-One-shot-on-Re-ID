@@ -90,7 +90,7 @@ def main(args):
                 new_train_data = reid.generate_new_train_data_only(selected_idx, pred_y,u_data)  # 这个选择准确率应该是和前面的label_pre是一样的.
                 train_tagper_data = one_shot + new_train_data
                 tagper.train(train_tagper_data,step,tagper=1,epochs=args.epoch, step_size=args.step_size, init_lr=0.1)
-        pred_y, pred_score, label_pre = tagper.estimate_label(u_data,one_shot)
+        pred_y, pred_score, label_pre = tagper.estimate_label_atm3(u_data,l_data,one_shot)
 
         #下面正对 reid 移动数据.
         if len(u_data) <= mv_num:
