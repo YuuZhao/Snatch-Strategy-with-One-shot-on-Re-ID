@@ -108,11 +108,11 @@ def main(args):
         # 开始评估
         # mAP, top1, top5, top10, top20 =0,0,0,0,0
         # mAP, top1, top5, top10, top20 = tagper.evaluate(dataset_all.query, dataset_all.gallery)
-        pred_y, pred_score, label_pre = tagper.estimate_label(u_data,one_shot)
+        pred_y, pred_score, label_pre = tagper.estimate_label_atm3(u_data,l_data,one_shot)
 
         #下面正对 reid 移动数据.
-        selected_idx = tagper.select_top_data(pred_score,min(mv_num,len(u_data)))  # 从所有 u_data 里面选
-        l_data,u_data,select_pre= tagper.move_unlabel_to_label(selected_idx,pred_y,u_data,l_data)
+        selected_idx = tagper.select_top_data(pred_score,min(mv_num*(step+1),len(u_data)))  # 从所有 u_data 里面选
+        l_data,select_pre= tagper.move_unlabel_to_label_cpu(selected_idx,pred_y,u_data)  #u_data保持不变
         tapger_end = time.time()
 
         data_file.write(

@@ -199,8 +199,8 @@ class EUG():
         o_label = np.array([label for _, label, _, _ in one_shot])
         u_label = np.array([label for _, label, _, _ in u_data])
         l_label = np.array([label for _, label, _, _ in l_data])
-        # for idex,o_fea in enumerate(o_feas):
-        #     o_feas[idex] = l_feas[l_label==o_label[idex]].mean(axis=0)
+        for idex,o_fea in enumerate(o_feas):
+            o_feas[idex] = l_feas[l_label==o_label[idex]].mean(axis=0)
         print("u_features", u_feas.shape, "l_features", l_feas.shape)
         scores = np.zeros((u_feas.shape[0]))
         labels = np.zeros((u_feas.shape[0]))
@@ -432,7 +432,7 @@ class EUG():
         return acc
 
 
-    def move_unlabel_to_label(self, sel_idx, pred_y,u_data,one_shot):
+    def move_unlabel_to_label(self, sel_idx, pred_y,u_data,l_data):
         u_label = np.array([label for _, label, _, _ in u_data])
         selected_data =[]
         correct,total = 0,0
@@ -445,9 +445,27 @@ class EUG():
         if total == 0:
             acc = 0
         else: acc = correct/total
-        new_one_shot = one_shot + selected_data
+        new_l_data = l_data + selected_data
         new_u_data = [u_data[i] for i in range(len(u_data)) if (sel_idx[i] == False)]
-        return  new_one_shot,new_u_data,acc
+        return  new_l_data,new_u_data,acc
+
+    def move_unlabel_to_label_cpu(self, sel_idx, pred_y,u_data):
+        u_label = np.array([label for _, label, _, _ in u_data])
+        selected_data =[]
+        correct,total = 0,0
+        for i,flag in enumerate(sel_idx):
+            if flag:
+                selected_data.append([u_data[i][0], int(pred_y[i]), u_data[i][2], u_data[i][3]])
+                total +=1
+                if (u_label[i] ==int(pred_y[i])):
+                    correct +=1
+        if total == 0:
+            acc = 0
+        else: acc = correct/total
+        # new_u_data = [u_data[i] for i in range(len(u_data)) if (sel_idx[i] == False)]
+        return  selected_data,acc
+
+
 
 
 
