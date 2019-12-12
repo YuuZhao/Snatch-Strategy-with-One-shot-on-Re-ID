@@ -412,7 +412,6 @@ class EUG():
 
 
     def generate_new_train_data_only(self,sel_idx,pred_y,u_data):
-        u_label = np.array([label for _, label, _, _ in u_data])
         seletcted_data = []
         for i,flag in enumerate(sel_idx):
             if flag:
@@ -428,7 +427,7 @@ class EUG():
                 if u_label[i] == int(pred_y[i]):
                     correct +=1
         if total ==0:
-            acc = 1
+            acc = 0
         else: acc = correct /total
         return acc
 
