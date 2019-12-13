@@ -138,8 +138,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Snatch Strategy')
     parser.add_argument('-d', '--dataset', type=str, default='mars',choices=datasets.names())  #s
     parser.add_argument('-b', '--batch-size', type=int, default=16)
-    parser.add_argument('--epoch',type=int,default=30)
-    parser.add_argument('--step_size',type=int,default=25)
+    parser.add_argument('--epoch',type=int,default=70)
+    parser.add_argument('--step_size',type=int,default=55)
     parser.add_argument('--EF', type=float, default=5)  # 渐进采样系数
     parser.add_argument('--q', type=float, default=1)  # 渐进采样指数
     parser.add_argument('--yita', type=int, default=100)   #big start based number
