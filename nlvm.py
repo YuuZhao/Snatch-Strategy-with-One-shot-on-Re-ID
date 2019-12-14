@@ -142,8 +142,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Snatch Strategy')
     parser.add_argument('-d', '--dataset', type=str, default='DukeMTMC-VideoReID',choices=datasets.names())  #DukeMTMC-VideoReID \mars
     parser.add_argument('-b', '--batch-size', type=int, default=16)
-    parser.add_argument('--epoch',type=int,default=40)
-    parser.add_argument('--step_size',type=int,default=30)
+    parser.add_argument('--epoch',type=int,default=70)
+    parser.add_argument('--step_size',type=int,default=55)
     parser.add_argument('--EF', type=float, default=10)  # 渐进采样系数
     parser.add_argument('--q', type=float, default=1)  # 渐进采样指数
     parser.add_argument('--percent_vari', type=float, default=0.8)   # 方差的筛选范围.
@@ -154,7 +154,7 @@ if __name__ == '__main__':
     parser.add_argument('--exp_order',type=str,default="1")
     parser.add_argument('--resume', type=str, default=None)
     parser.add_argument('--mode', type=str, choices=["Classification", "Dissimilarity"], default="Dissimilarity")   #这个考虑要不要取消掉
-    parser.add_argument('--max_frames', type=int, default=400)
+    parser.add_argument('--max_frames', type=int, default=100)
     parser.add_argument('--clock',type=bool, default=True)  #是否记时
     parser.add_argument('--gdraw',type=bool, default=False)  #是否实时绘图
 
