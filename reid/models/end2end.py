@@ -31,13 +31,13 @@ class AvgPooling(nn.Module):
         self.drop = nn.Dropout(dropout)
 
         # classifier
-        self.classify_fc = nn.Linear(embeding_fea_size, num_classes)
+        self.classify_fc = nn.Linear(embeding_fea_size*2, num_classes)
         init.normal(self.classify_fc.weight, std = 0.001)
         init.constant(self.classify_fc.bias, 0)
 
     def forward(self, inputs):
-        # avg_pool_feat = inputs.mean(dim = 1)
-        avg_pool_feat = torch.median(inputs,dim=1)[0]
+        avg_pool_feat = inputs.mean(dim = 1)
+        # avg_pool_feat = torch.median(inputs,dim=1)[0]
         if (not self.training) and self.is_output_feature:
             return F.normalize(avg_pool_feat, p=2, dim=1)
 
