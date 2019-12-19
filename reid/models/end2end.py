@@ -44,7 +44,7 @@ class AvgPooling(nn.Module):
         self.drop = nn.Dropout(dropout)
 
         # classifier
-        self.classify_fc = nn.Linear(embeding_fea_size*2, num_classes)
+        self.classify_fc = nn.Linear(embeding_fea_size, num_classes)
         init.normal(self.classify_fc.weight, std = 0.001)
         init.constant(self.classify_fc.bias, 0)
 
@@ -105,7 +105,7 @@ class End2End_AvgPooling(nn.Module):    #训练的基本模型在这儿
         feat_l1 = self.apm_l1(resnet_feature[:,:341])
         feat_l2 = self.apm_l2(resnet_feature[:,341:341*3])
         feat_l3 = self.apm_l3(resnet_feature[:,341*3:341*5])
-        feat_l4 = self.apm_l4(resnet_feature[:,341*5])
+        feat_l4 = self.apm_l4(resnet_feature[:,341*5:])
 
         feat_g = feat_g.view(oriShape[0], oriShape[1], -1)
         feat_l1 = feat_l1.view(oriShape[0], oriShape[1], -1)
