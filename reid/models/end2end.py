@@ -140,9 +140,9 @@ class End2End_AvgPooling(nn.Module):  # 训练的基本模型在这儿
         # predict = self.avg_pooling(
         #     [feat_g, feat_l1, feat_l2, feat_l3, feat_l4])
         pred_g = self.avg_pooling_g(feat_g)
-        pred_l1 = self.avg_pooling_g(feat_l1)
-        pred_l2 = self.avg_pooling_g(feat_l2)
-        pred_l3 = self.avg_pooling_g(feat_l3)
-        pred_l4 = self.avg_pooling_g(feat_l4)
+        pred_l1 = self.avg_pooling_l1(feat_l1)
+        pred_l2 = self.avg_pooling_l2(feat_l2)
+        pred_l3 = self.avg_pooling_l3(feat_l3)
+        pred_l4 = self.avg_pooling_l4(feat_l4)
 
         return [pred_g, pred_l1, pred_l2, pred_l3, pred_l4]

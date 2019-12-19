@@ -22,7 +22,7 @@ import matplotlib.pyplot as plt
 
 import os
 import  codecs
-from common_tool import *
+# from common_tool import *
 
 def main(args):
 

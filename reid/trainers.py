@@ -5,7 +5,7 @@ import torch
 from torch.autograd import Variable
 
 from .evaluation_metrics import accuracy
-from .loss import OIMLoss, TripletLoss
+from .loss import OIMLoss, TripletLoss, APMLoss
 from .utils.meters import AverageMeter
 
 
@@ -18,8 +18,7 @@ class BaseTrainer(object):
     def train(self, epoch, data_loader, optimizer, print_freq=30):
         self.model.train()
 
-
-        # The following code is used to keep the BN on the first three block fixed 
+        # The following code is used to keep the BN on the first three block fixed
         fixed_bns = []
         for idx, (name, module) in enumerate(self.model.module.named_modules()):
             if name.find("layer3") != -1:
@@ -27,9 +26,7 @@ class BaseTrainer(object):
                 break
             if name.find("bn") != -1:
                 fixed_bns.append(name)
-                module.eval() 
-
-
+                module.eval()
 
         batch_time = AverageMeter()
         data_time = AverageMeter()
@@ -95,7 +92,16 @@ class Trainer(BaseTrainer):
             prec = prec[0]
         elif isinstance(self.criterion, TripletLoss):
             loss, prec = self.criterion(outputs, targets)
+        elif isinstance(self.criterion, APMLoss):
+            loss = self.criterion(outputs, targets)
+
+            prec_g, = accuracy(outputs[0].data, targets.data)
+            prec_l1, = accuracy(outputs[1].data, targets.data)
+            prec_l2, = accuracy(outputs[2].data, targets.data)
+            prec_l3, = accuracy(outputs[3].data, targets.data)
+            prec_l4, = accuracy(outputs[4].data, targets.data)
+
+            prec = (prec_g[0] + prec_l1[0] + prec_l2[0] + prec_l3[0] + prec_l4[0])/5
         else:
             raise ValueError("Unsupported loss:", self.criterion)
         return loss, prec
-
