@@ -240,3 +240,4 @@ examples/data
 /tsne/
 /gradual_lines.png
 /draw_paper.py
+/draw_atm_ero.py
