@@ -370,6 +370,20 @@ class EUG():
 
         return new_train_data,acc
 
+    def generate_new_train_data1(self, nums_to_select):
+        """ generate the next training data """
+        if nums_to_select == len(self.u_data):
+            return self.l_data+self.u_data
+
+        seletcted_data = []
+        Nu = len(self.u_data)
+        resultList = random.sample(range(0, Nu), nums_to_select)
+        for num in resultList:
+            seletcted_data.append(self.u_data[num])
+
+        new_train_data = self.l_data + seletcted_data
+        return new_train_data
+
     def resume(self, ckpt_file, step):
         print("continued from step", step)
         model = models.create(self.model_name, dropout=self.dropout, num_classes=self.num_classes, mode=self.mode)
