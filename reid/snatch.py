@@ -269,6 +269,56 @@ class EUG():
         # print(id_num)
         return labels, scores, label_pre
 
+    def estimate_label_atm4(self, u_data,l_data,one_shot):  #根据manifold打标签
+        if len(l_data)==0:
+            return  self.estimate_label(u_data,one_shot)
+        # extract feature
+        # l_data = one_shot+l_data    #把带标注的样本和起来
+        u_feas = self.get_feature(u_data)
+        l_feas = self.get_feature(l_data)
+        o_feas = self.get_feature(one_shot)
+        # l_feas = np.vstack((o_feas,l_feas))
+        # l_data = one_shot+l_data
+        o_label = np.array([label for _, label, _, _ in one_shot])
+        u_label = np.array([label for _, label, _, _ in u_data])
+        l_label = np.array([label for _, label, _, _ in l_data])
+        # for idex,o_fea in enumerate(o_feas):
+        #     o_feas[idex] = l_feas[l_label==o_label[idex]].mean(axis=0)
+        print("u_features", u_feas.shape, "l_features", l_feas.shape)
+        scores = np.zeros((u_feas.shape[0]))
+        labels = np.zeros((u_feas.shape[0]))
+
+        id_num = {}  # 以标签名称作为字典
+        num_correct_pred = 0
+        for idx, u_fea in enumerate(u_feas):
+            dist_one = np.zeros((o_feas.shape[0]))  #u_fea 到每个类别的最终距离
+            dist_ulo  = np.zeros((o_feas.shape[0],l_feas.shape[0]))
+            dist_ul = np.linalg.norm(l_feas - u_fea, axis=1)
+            dist_uo = np.linalg.norm(o_feas - u_fea, axis=1)
+            for idx_o,o_fea in enumerate(o_feas): # 便利oneshot的特征
+                dist_temp = np.linalg.norm(l_feas-o_fea,axis=1)
+                dist_ulo[idx_o] = dist_temp + dist_ul
+            for idx_o,o_lab in enumerate(o_label):
+                min_ulo = np.min(dist_ulo[idx_o][l_label==o_lab],axis=1)
+                if min_ulo < dist_uo[idx_o]:
+                    dist_uo[idx_o] = min_ulo
+                    print("manifold yes")
+            index_min = np.argmin(dist_uo)
+            scores[idx] = - dist_uo[index_min]  # "- dist" : more dist means less score
+            labels[idx] = o_label[index_min]  # take the nearest labled neighbor as the prediction label
+            if u_label[idx] == labels[idx]:
+                num_correct_pred += 1
+        label_pre = 0
+        if u_feas.shape[0] != 0:
+            label_pre = num_correct_pred / u_feas.shape[0]
+        print("{} predictions on all the unlabeled data: {} of {} is correct, accuracy = {:0.3f}".format(
+            self.mode, num_correct_pred, u_feas.shape[0], label_pre))
+
+        sorted(id_num.items(), key=lambda item: item[1])
+        # print("id_num:--------------------------------------------id_num----------------- ")
+        # print(id_num)
+        return labels, scores, label_pre
+
 
     def estimate_label(self, u_data,l_data):
         # extract feature
