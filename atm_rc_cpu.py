@@ -36,6 +36,7 @@ def main(args):
     l_data = []
     total_step = args.total_step
     mv_num = math.ceil(len(u_data)/total_step)   # 最后一轮必定不足add_num的数量
+    tagper_num = math.ceil(len(u_data)/args.train_tagper_step)
     # 输出该轮训练关键的提示信息
     print("{} training begin with dataset:{},batch_size:{},epoch:{},step_size:{},max_frames:{},total_step:{},add {} sample each step.".format(args.exp_name,args.dataset,args.batch_size,args.epoch,args.step_size,args.max_frames,total_step,mv_num))
 
@@ -66,7 +67,7 @@ def main(args):
     for step in range(total_step+1):
 
         print("{} training begin with dataset:{},batch_size:{},epoch:{},step:{}/{} saved to {}.".format(args.exp_name,args.dataset,args.batch_size, args.epoch,step+1,total_step+1,reid_path))
-        print("key parameters contain mv_num:{} len(one_shot):{},len(u_data):{}".format(mv_num,len(l_data),len(u_data)))
+        print("key parameters contain mv_num:{} tagper_num:{} len(l_data):{},len(u_data):{}".format(mv_num,tagper_num,len(l_data),len(u_data)))
 
         # 开始训练
         train_reid_data = one_shot+l_data   # 在这个过程中,保持了one_shot不变了
@@ -98,7 +99,7 @@ def main(args):
             tagper.resume(osp.join(reid_path,'tagper','Dissimilarity_step_0.ckpt'), 0)
         else:
             tagper.resume(osp.join(reid_path, 'Dissimilarity_step_{}.ckpt'.format(step)), step)
-            selected_idx = tagper.select_top_data(pred_score, math.floor(len(u_data)*args.add_to_tagper_percent))  #
+            selected_idx = tagper.select_top_data(pred_score, min(tagper_num*(step+1),len(u_data)))  #训练tagper的数量也递增
             new_train_data = tagper.generate_new_train_data_only(selected_idx, pred_y, u_data)  # 这个选择准确率应该是和前面的label_pre是一样的.
             train_tagper_data = one_shot+l_data+new_train_data
             tagper.train(train_tagper_data, step, tagper=1, epochs=args.epoch, step_size=args.step_size, init_lr=0.1)
@@ -155,7 +156,7 @@ if __name__ == '__main__':
     parser.add_argument('--gdraw',type=bool, default=False)  #是否实时绘图
     # the key parameters is following
     parser.add_argument('--total_step',type=int,default=5)  #默认总的五次迭代.
-    parser.add_argument('--add_to_tagper_percent',type=float,default=1)  # 用于训练 tagper的 伪标签百分比
+    parser.add_argument('--train_tagper_step',type=float,default=5)  # 用于训练 tagper的 step 数
     parser.add_argument('--is_baseline',type=bool,default=False)  # 默认不是baseline
 
     #下面是暂时不知道用来做什么的参数
