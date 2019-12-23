@@ -241,3 +241,5 @@ examples/data
 /draw.py
 /draw_paper.py
 /draw_atm.py
+/draw_atm_ero.py
+/gradual_lines.png
