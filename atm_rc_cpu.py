@@ -95,14 +95,22 @@ def main(args):
 
 
         tagper_start = time.time()
-        if step == 0  and not args.is_baseline:
-            tagper.resume(osp.join(reid_path,'tagper','Dissimilarity_step_0.ckpt'), 0)
-        else:
-            tagper.resume(osp.join(reid_path, 'Dissimilarity_step_{}.ckpt'.format(step)), step)
-            selected_idx = tagper.select_top_data(pred_score, min(tagper_num*(step+1),len(u_data)))  #训练tagper的数量也递增
-            new_train_data = tagper.generate_new_train_data_only(selected_idx, pred_y, u_data)  # 这个选择准确率应该是和前面的label_pre是一样的.
-            train_tagper_data = one_shot+l_data+new_train_data
-            tagper.train(train_tagper_data, step, tagper=1, epochs=args.epoch, step_size=args.step_size, init_lr=0.1)
+        '''第一个tagper可以resume'''
+        # if step == 0  and not args.is_baseline:
+        #     tagper.resume(osp.join(reid_path,'tagper','Dissimilarity_step_0.ckpt'), 0)
+        # else:
+        #     tagper.resume(osp.join(reid_path, 'Dissimilarity_step_{}.ckpt'.format(step)), step)
+        #     selected_idx = tagper.select_top_data(pred_score, min(tagper_num*(step+1),len(u_data)))  #训练tagper的数量也递增
+        #     new_train_data = tagper.generate_new_train_data_only(selected_idx, pred_y, u_data)  # 这个选择准确率应该是和前面的label_pre是一样的.
+        #     train_tagper_data = one_shot+l_data+new_train_data
+        #     tagper.train(train_tagper_data, step, tagper=1, epochs=args.epoch, step_size=args.step_size, init_lr=0.1)
+        '''所有的tagper都重新训练'''
+        tagper.resume(osp.join(reid_path, 'Dissimilarity_step_{}.ckpt'.format(step)), step)
+        selected_idx = tagper.select_top_data(pred_score, min(tagper_num*(step+1),len(u_data)))  #训练tagper的数量也递增
+        new_train_data = tagper.generate_new_train_data_only(selected_idx, pred_y, u_data)  # 这个选择准确率应该是和前面的label_pre是一样的.
+        train_tagper_data = one_shot+l_data+new_train_data
+        tagper.train(train_tagper_data, step, tagper=1, epochs=args.epoch, step_size=args.step_size, init_lr=0.1)
+
         # 开始评估
         # mAP, top1, top5, top10, top20 =0,0,0,0,0
         mAP, top1, top5, top10, top20 = tagper.evaluate(dataset_all.query, dataset_all.gallery)
