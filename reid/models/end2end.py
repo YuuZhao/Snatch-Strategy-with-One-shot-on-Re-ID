@@ -36,10 +36,10 @@ class AvgPooling(nn.Module):
         init.constant(self.classify_fc.bias, 0)
 
     def forward(self, inputs):
-        feat_mean = inputs.mean(dim=1)
-        avg_pool_feat = inputs[0][torch.argmin(abs(inputs-feat_mean).sum(dim=2),dim=1)]
+        # feat_mean = inputs.mean(dim=1)
+        # avg_pool_feat = inputs[0][torch.argmin(abs(inputs-feat_mean).sum(dim=2),dim=1)]
 
-        # avg_pool_feat = inputs.mean(dim = 1)
+        avg_pool_feat = inputs.mean(dim = 1)
 
         # avg_pool_feat = inputs[torch.argmin(abs(inputs - feat_mean).sum(dim=-3))]
         # avg_pool_feat = torch.median(inputs,dim=1)[0]
