@@ -64,9 +64,9 @@ def main(args):
                  max_frames=args.max_frames)
     # 开始的时间记录
     exp_start = time.time()
-    for step in range(total_step+1):
+    for step in range(total_step):
 
-        print("{} training begin with dataset:{},batch_size:{},epoch:{},step:{}/{} saved to {}.".format(args.exp_name,args.dataset,args.batch_size, args.epoch,step+1,total_step+1,reid_path))
+        print("{} training begin with dataset:{},batch_size:{},epoch:{},step:{}/{} saved to {}.".format(args.exp_name,args.dataset,args.batch_size, args.epoch,step+1,total_step,reid_path))
         print("key parameters contain mv_num:{} tagper_num:{} len(l_data):{},len(u_data):{}".format(mv_num,tagper_num,len(l_data),len(u_data)))
 
         # 开始训练
@@ -108,7 +108,7 @@ def main(args):
         tagper.resume(osp.join(reid_path, 'Dissimilarity_step_{}.ckpt'.format(step)), step)
         selected_idx = tagper.select_top_data(pred_score, min(tagper_num*(step+1),len(u_data)))  #训练tagper的数量也递增
         new_train_data = tagper.generate_new_train_data_only(selected_idx, pred_y, u_data)  # 这个选择准确率应该是和前面的label_pre是一样的.
-        train_tagper_data = one_shot+l_data+new_train_data
+        train_tagper_data = one_shot+new_train_data
         tagper.train(train_tagper_data, step, tagper=1, epochs=args.epoch, step_size=args.step_size, init_lr=0.1)
 
         # 开始评估
@@ -133,6 +133,8 @@ def main(args):
             tagper_time = tapger_end-tagper_start
             step_time = tapger_end+reid_start
             time_file.write("step:{}  reid_time:{} tagper_time:{} step_time:{}\n".format(int(step+1),reid_time,tagper_time,step_time))
+            h, m, s = changetoHSM(step_time)
+            print("this step is over, cost %02d:%02d:%02.6f" % ( h, m, s))
 
 
     data_file.close()
