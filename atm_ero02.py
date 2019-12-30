@@ -64,7 +64,7 @@ def main(args):
     train_data, select_pre = eug.generate_new_train_data(selected_idx,pred_y)
     eug.train(train_data,1,epochs=args.epoch, step_size=args.step_size, init_lr=0.1)
     pred_y, pred_score, label_pre, id_num = eug.estimate_label()   #tagper的数据
-    data_file.write('percent:{} label_pre:{}'.format(args.percent,label_pre))
+    data_file.write('select_num:{} label_pre:{}'.format(args.num_train_tagper,label_pre))
     select_num =[100,200,300,400,500]
     for sn in select_num: #对采样比例做便利\
         selected_idx = eug.select_top_data(pred_score,sn)
@@ -88,7 +88,7 @@ if __name__ == '__main__':
     parser.add_argument('-b', '--batch-size', type=int, default=16)
     parser.add_argument('--epoch',type=int,default=70)
     parser.add_argument('--step_size',type=int,default=55)
-    parser.add_argument('--num_train_tagper', type=float, default=0)  # 第二次加进去的量
+    parser.add_argument('--num_train_tagper', type=int, default=0)  # 第二次加进去的量
     working_dir = os.path.dirname(os.path.abspath(__file__))
     parser.add_argument('--data_dir', type=str, metavar='PATH',default=os.path.join(working_dir, 'data'))  # 加载数据集的根目录
     parser.add_argument('--logs_dir', type=str, metavar='PATH',default=os.path.join(working_dir, 'logs'))  # 保持日志根目录
@@ -116,5 +116,11 @@ if __name__ == '__main__':
     python3.6 atm_ero02.py --exp_order 4 --num_train_tagper 1600  
     
     if need to run this file with Mars dataset, please add '--dataset mars' in the tail of the order lines.
+    
+    python3.6 atm_ero02.py --exp_order 0 --num_train_tagper 100  --dataset mars
+    python3.6 atm_ero02.py --exp_order 1 --num_train_tagper 200  --dataset mars
+    python3.6 atm_ero02.py --exp_order 2 --num_train_tagper 400  --dataset mars
+    python3.6 atm_ero02.py --exp_order 3 --num_train_tagper 800  --dataset mars
+    python3.6 atm_ero02.py --exp_order 4 --num_train_tagper 1600 --dataset mars
     
     '''
