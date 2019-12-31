@@ -24,7 +24,50 @@ import os
 import  codecs
 from  common_tool import *
 
+def eval_select_pre(args):
+    cudnn.benchmark = True
+    cudnn.enabled = True
+
+    # get all the labeled and unlabeled data for training
+    dataset_all = datasets.create(args.dataset, osp.join(args.data_dir, args.dataset))
+    l_data, u_data = get_one_shot_in_cam1(dataset_all, load_path="./examples/oneshot_{}_used_in_paper.pickle".format(
+        dataset_all.name))
+
+    sys.stdout = Logger(osp.join(args.logs_dir, args.dataset, args.exp_name, args.exp_order,
+                                 'log_f1' + time.strftime(".%m_%d_%H-%M-%S") + '.txt'))
+    data_file = codecs.open(osp.join(args.logs_dir, args.dataset, args.exp_name, args.exp_order, 'data_f1.txt'), mode='a')
+    save_path = osp.join(args.logs_dir, args.dataset, args.exp_name, args.exp_order)
+
+    # initial the EUG algorithm
+    eug = EUG(model_name=args.arch, batch_size=args.batch_size, mode=args.mode, num_classes=dataset_all.num_train_ids,
+              data_dir=dataset_all.images_dir, l_data=l_data, u_data=u_data, save_path=save_path,
+              max_frames=args.max_frames)
+    eug.resume(osp.join(save_path, 'Dissimilarity_step_1.ckpt'), 1)
+    pred_y, pred_score, label_pre, id_num = eug.estimate_label()
+    data_file.write('select_num:{} label_pre:{}'.format(args.num_train_tagper, label_pre))
+    select_num = [100, 200, 300, 400, 500, 600,700,800,900,1000,1100,1200]
+    for sn in select_num:  # 对采样比例做便利\
+        selected_idx = eug.select_top_data(pred_score, sn)
+        _, select_pre = eug.generate_new_train_data(selected_idx, pred_y)
+        data_file.write(' sn{}:{}'.format(sn, select_pre))
+    data_file.write('\n')
+
+    '''
+    python3.6 atm_ero02.py --exp_order 0 --num_train_tagper 100  --func 1
+    '''
+
+    '''
+    python3.6 atm_ero02.py --exp_order 0 --num_train_tagper 100  --func 1
+    python3.6 atm_ero02.py --exp_order 1 --num_train_tagper 200  --func 1
+    python3.6 atm_ero02.py --exp_order 2 --num_train_tagper 400  --func 1
+    python3.6 atm_ero02.py --exp_order 3 --num_train_tagper 800  --func 1
+    python3.6 atm_ero02.py --exp_order 4 --num_train_tagper 1600 --func 1
+    '''
+
 def main(args):
+    if  args.func == 1:
+        eval_select_pre(args)
+        return
     # 声明动态绘图器
     # gd = gif_drawer()
 
@@ -99,6 +142,7 @@ if __name__ == '__main__':
     parser.add_argument('--max_frames', type=int, default=100)
     parser.add_argument('--clock',type=bool, default=True)  #是否记时
     parser.add_argument('--gdraw',type=bool, default=False)  #是否实时绘图
+    parser.add_argument('--func',type = int, default=0)
 
     #下面是暂时不知道用来做什么的参数
     parser.add_argument('-a', '--arch', type=str, default='avg_pool',choices=models.names())  #eug model_name
