@@ -89,7 +89,7 @@ class EUG():
         print("create dataloader for {} with batch_size {}".format(current_status, batch_size))
         return data_loader
 
-    def train(self, train_data, step,tagper=0, epochs=10, step_size=55, init_lr=0.1, dropout=0.5):
+    def train(self, train_data, step, tagper=0, epochs=10, step_size=55, init_lr=0.1, dropout=0.5):
 
         """ create model and dataloader """
         model = models.create(self.model_name, dropout=self.dropout, num_classes=self.num_classes, mode=self.mode)
@@ -131,7 +131,11 @@ class EUG():
             trainer.train(epoch, dataloader, optimizer)
             # trainer.train(epoch, dataloader, optimizer, print_freq=len(dataloader)//30 * 10)
         if tagper == 1:
-            save_path = osp.join(self.save_path,'tagper')
+            save_path = osp.join(self.save_path,'tagper1')
+            if os.path.exists(save_path) is False:
+                os.makedirs(save_path)
+        elif tagper == 2:
+            save_path = osp.join(self.save_path,'tagper2')
             if os.path.exists(save_path) is False:
                 os.makedirs(save_path)
         else: save_path = self.save_path
