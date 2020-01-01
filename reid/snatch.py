@@ -376,6 +376,22 @@ class EUG():
             v[index[i]] = 1
         return v.astype('bool')
 
+    def select_top_data_except_different(self, pred_score1, pred_y1,pred_y2,nums_to_select):
+        different_flag = np.zeros((len(pred_y1)))
+        same_num = 0
+        for i in range(len(pred_y1)):
+            if (pred_y1[i]==pred_y2[i]):
+                different_flag[i] = 1
+                same_num +=1
+
+        v = np.zeros(len(pred_score1))
+        index = np.argsort(-pred_score1)
+        index = index[different_flag==1]
+        num = min(len(index),nums_to_select)
+        for i in range(num):  #排序,求最前面的n个
+            v[index[i]] = 1
+        return v.astype('bool'),same_num,same_num/len(pred_y1)
+
 
 
 
