@@ -34,6 +34,9 @@ def main(args):
     one_shot, u_data = get_one_shot_in_cam1(dataset_all, load_path="./examples/oneshot_{}_used_in_paper.pickle".format(
         dataset_all.name))
     l_data = []
+    t1_l_data =[]
+    t2_l_data =[]
+    # l_data = one_shot
     total_step = args.total_step
     mv_num = math.ceil(len(u_data)/total_step)   # 最后一轮必定不足add_num的数量
     tagper_num = math.ceil(len(u_data)/args.train_tagper_step)
@@ -89,21 +92,21 @@ def main(args):
 
         # 开始评估
         print("\n 开始评估 reid_({})的性能".format(step))
+        # reid_mAP, reid_top1, reid_top5, reid_top10, reid_top20 = 0, 0, 0, 0, 0
         reid_mAP,reid_top1,reid_top5,reid_top10,reid_top20 = reid.evaluate(dataset_all.query, dataset_all.gallery)
-        # reid_mAP,reid_top1,reid_top5,reid_top10,reid_top20 = 0,0,0,0,0
         # 测试 train tagper之前的select_pre
 
-        reid_pred_y, reid_pred_score, reid_label_pre = reid.estimate_label_atm3(u_data,l_data,one_shot)  # 针对u_data进行标签估计
+        reid_pred_y, reid_pred_score, reid_label_pre = reid.estimate_label_atm3(u_data,t1_l_data,one_shot)  # 针对u_data进行标签估计
         reid_select_num = min(mv_num*(step+1),len(u_data))
         reid_selected_idx = reid.select_top_data(reid_pred_score,reid_select_num)
         reid_select_pre = reid.get_select_pre(reid_selected_idx,reid_pred_y,u_data)
 
         data_file.write(
             "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} len(l_data):{} label_pre:{:.2%} select_num:{} select_pre:{:.2%}\n".format(
-                int(step + 1), reid_mAP, reid_top1, reid_top5, reid_top10, reid_top20, len(l_data), reid_label_pre, reid_select_num,reid_select_pre))
+                int(step + 1), reid_mAP, reid_top1, reid_top5, reid_top10, reid_top20, len(t1_l_data), reid_label_pre, reid_select_num,reid_select_pre))
         print(
             "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} len(l_data):{} label_pre:{:.2%} select_num:{} select_pre:{:.2%}\n".format(
-                int(step + 1), reid_mAP, reid_top1, reid_top5, reid_top10, reid_top20, len(l_data), reid_label_pre,
+                int(step + 1), reid_mAP, reid_top1, reid_top5, reid_top10, reid_top20, len(t1_l_data), reid_label_pre,
                 reid_select_num, reid_select_pre))
 
 
@@ -122,9 +125,15 @@ def main(args):
         reid_selected_idx2 = reid.select_top_data(reid_pred_score, reid_select_num2)  # 训练tagper的数量也递增
         new_train_data = reid.generate_new_train_data_only(reid_selected_idx2, reid_pred_y,u_data)  # 这个选择准确率应该是和前面的label_pre是一样的.
         train_tagper_data = one_shot + new_train_data
-        if tagper_num*(step) > len(u_data):
+        if tagper_num*(step) > len(u_data):  # 表示_udata加完了就不再训练
             tagper1.resume(osp.join(reid_path, 'Dissimilarity_step_{}.ckpt'.format(step)), step)
             tagper2.resume(osp.join(reid_path, 'Dissimilarity_step_{}.ckpt'.format(step)), step)
+            t1_mAP, t1_top1, t1_top5, t1_top10, t1_top20 = reid_mAP,reid_top1,reid_top5,reid_top10,reid_top20
+            t1_pred_y, t1_pred_score, t1_label_pre = reid_pred_y, reid_pred_score, reid_label_pre
+            t1_select_num  = min(mv_num * (step + 1), len(u_data))
+            t1_selected_idx = tagper1.select_top_data(t1_pred_score, t1_select_num)  # 从所有 u_data 里面选
+            t1_l_data, t1_select_pre = tagper1.move_unlabel_to_label_cpu(t1_selected_idx, t1_pred_y, u_data)
+            l_data = t1_l_data
         else:
             if os.path.exists(reid_path+'/tagper1/Dissimilarity_step_{}.ckpt'.format(step)) is True:
                 tagper1.resume(reid_path+'/tagper1/Dissimilarity_step_{}.ckpt'.format(step),step)
@@ -142,17 +151,14 @@ def main(args):
                 print("\n 开始训练 tagper2_({}) with {} data".format(step, reid_select_num2))
                 tagper2.train(train_tagper_data, step, tagper=2, epochs=args.epoch, step_size=args.step_size,
                               init_lr=0.1)
-
-
-
-        # 开始评估
-        # mAP, top1, top5, top10, top20 =0,0,0,0,0
+            # 开始评估
+            # mAP, top1, top5, top10, top20 =0,0,0,0,0
             t1_mAP, t1_top1, t1_top5, t1_top10, t1_top20 = tagper1.evaluate(dataset_all.query, dataset_all.gallery)
             # t1_mAP, t1_top1, t1_top5, t1_top10, t1_top20 = 0,0,0,0,0
-            t2_mAP, t2_top1, t2_top5, t2_top10, t2_top20 = tagper2.evaluate(dataset_all.query, dataset_all.gallery)
+            # t2_mAP, t2_top1, t2_top5, t2_top10, t2_top20 = tagper2.evaluate(dataset_all.query, dataset_all.gallery)
             # t2_mAP, t2_top1, t2_top5, t2_top10, t2_top20 = 0,0,0,0,0
-            t1_pred_y, t1_pred_score, t1_label_pre = tagper1.estimate_label_atm3(u_data,l_data,one_shot)
-            t2_pred_y, t2_pred_score, t2_label_pre = tagper2.estimate_label_atm3(u_data,l_data,one_shot)
+            t1_pred_y, t1_pred_score, t1_label_pre = tagper1.estimate_label_atm3(u_data,t2_l_data,one_shot)
+            t2_pred_y, t2_pred_score, t2_label_pre = tagper2.estimate_label_atm3(u_data,t1_l_data,one_shot)
 
             #下面正对 reid 移动数据
             t1_select_num=t2_select_num = min(mv_num*(step+1),len(u_data))
@@ -162,21 +168,20 @@ def main(args):
             t2_l_data, t2_select_pre = tagper2.move_unlabel_to_label_cpu(t2_selected_idx, t2_pred_y, u_data)
             l_data = t1_l_data+t2_l_data
 
-
-            tagper1_file.write(
+        tagper1_file.write(
                 "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} len(l_data):{} label_pre:{:.2%}  select_num:{} select_pre:{:.2%}\n".format(
                     int(step + 1), t1_mAP, t1_top1, t1_top5, t1_top10, t1_top20, len(t1_l_data), t1_label_pre, t1_select_num, t1_select_pre))
-            tagper2_file.write(
-                "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} len(l_data):{} label_pre:{:.2%}  select_num:{} select_pre:{:.2%}\n".format(
-                    int(step + 1), t2_mAP, t2_top1, t2_top5, t2_top10, t2_top20, len(t2_l_data), t2_label_pre, t2_select_num, t2_select_pre))
-            print(
+            # tagper2_file.write(
+            #     "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} len(l_data):{} label_pre:{:.2%}  select_num:{} select_pre:{:.2%}\n".format(
+            #         int(step + 1), t2_mAP, t2_top1, t2_top5, t2_top10, t2_top20, len(t2_l_data), t2_label_pre, t2_select_num, t2_select_pre))
+        print(
                 "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} len(l_data):{} label_pre:{:.2%}  select_num:{} select_pre:{:.2%}\n".format(
                     int(step + 1), t1_mAP, t1_top1, t1_top5, t1_top10, t1_top20, len(t1_l_data), t1_label_pre,
                     t1_select_num, t1_select_pre))
-            print(
-                "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} len(l_data):{} label_pre:{:.2%}  select_num:{} select_pre:{:.2%}\n".format(
-                    int(step + 1), t2_mAP, t2_top1, t2_top5, t2_top10, t2_top20, len(t2_l_data), t2_label_pre,
-                    t2_select_num, t2_select_pre))
+            # print(
+            #     "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} len(l_data):{} label_pre:{:.2%}  select_num:{} select_pre:{:.2%}\n".format(
+            #         int(step + 1), t2_mAP, t2_top1, t2_top5, t2_top10, t2_top20, len(t2_l_data), t2_label_pre,
+            #         t2_select_num, t2_select_pre))
 
         tapger_end = time.time()
 
@@ -232,6 +237,6 @@ if __name__ == '__main__':
 
 
     '''
-    python3.6  atm_par.py  --exp_order 3 --total_step 5 --train_tagper_step 3
+    python3.6  atm_par.py  --exp_order 2 --total_step 5 --train_tagper_step 3  --resume True
     
     '''

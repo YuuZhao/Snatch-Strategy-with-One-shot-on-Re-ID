@@ -196,7 +196,7 @@ def main(args):
 
     data_file.close()
     tagper1_file.close()
-    tagper2_file.close()
+    # tagper2_file.close()
     if (args.clock):
         exp_end = time.time()
         exp_time = exp_end - exp_start

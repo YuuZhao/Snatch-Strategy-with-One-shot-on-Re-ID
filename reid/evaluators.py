@@ -30,6 +30,8 @@ def extract_features(model, data_loader, print_freq=1, metric=None):
                 outputs = extract_cnn_feature(model, imgs)
                 # del imgs
                 for fname, output, pid in zip(fnames, outputs, pids):
+                    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                    # 肯定是因为数据集中包含同样的fname,后边提取的特征覆盖了前边的
                     features[fname] = output
                     labels[fname] = pid
 
