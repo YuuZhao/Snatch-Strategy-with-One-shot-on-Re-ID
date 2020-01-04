@@ -34,6 +34,9 @@ def main(args):
     one_shot, u_data = get_one_shot_in_cam1(dataset_all, load_path="./examples/oneshot_{}_used_in_paper.pickle".format(
         dataset_all.name))
     l_data = []
+    t1_l_data = []
+    t2_l_data = []
+    select_num = 0
     total_step = args.total_step
     mv_num = math.ceil(len(u_data) / total_step)  # 最后一轮必定不足add_num的数量
     tagper_num = math.ceil(len(u_data) / args.train_tagper_step)
@@ -52,7 +55,7 @@ def main(args):
     # save_path = reid_path
     tagper_path = osp.join(reid_path, 'tagper')
     tagper1_file = codecs.open(osp.join(reid_path, "tagper1_data.txt"), mode='a')
-    # tagper2_file = codecs.open(osp.join(reid_path, "tagper2_data.txt"), mode='a')
+    tagper2_file = codecs.open(osp.join(reid_path, "tagper2_data.txt"), mode='a')
 
     # resume_step, ckpt_file = -1, ''
     # if args.resume:  # 重新训练的时候用
@@ -62,10 +65,14 @@ def main(args):
     reid = EUG(model_name=args.arch, batch_size=args.batch_size, mode=args.mode, num_classes=dataset_all.num_train_ids,
                data_dir=dataset_all.images_dir, l_data=one_shot, u_data=u_data, save_path=reid_path,
                max_frames=args.max_frames)
-    tagper1 = tagper2 = EUG(model_name=args.arch, batch_size=args.batch_size, mode=args.mode,
-                            num_classes=dataset_all.num_train_ids,
-                            data_dir=dataset_all.images_dir, l_data=one_shot, u_data=u_data, save_path=reid_path,
-                            max_frames=args.max_frames)
+    tagper1 = EUG(model_name=args.arch, batch_size=args.batch_size, mode=args.mode,
+                  num_classes=dataset_all.num_train_ids,
+                  data_dir=dataset_all.images_dir, l_data=one_shot, u_data=u_data, save_path=reid_path,
+                  max_frames=args.max_frames)
+    tagper2 = EUG(model_name=args.arch, batch_size=args.batch_size, mode=args.mode,
+                  num_classes=dataset_all.num_train_ids,
+                  data_dir=dataset_all.images_dir, l_data=one_shot, u_data=u_data, save_path=reid_path,
+                  max_frames=args.max_frames)
 
     resume_step = -1
     if args.resume:
@@ -138,6 +145,12 @@ def main(args):
         if tagper_num * (step) > len(u_data):
             tagper1.resume(osp.join(reid_path, 'Dissimilarity_step_{}.ckpt'.format(step)), step)
             tagper2.resume(osp.join(reid_path, 'Dissimilarity_step_{}.ckpt'.format(step)), step)
+            t1_mAP, t1_top1, t1_top5, t1_top10, t1_top20 = reid_mAP, reid_top1, reid_top5, reid_top10, reid_top20
+            t1_pred_y, t1_pred_score, t1_label_pre = reid_pred_y, reid_pred_score, reid_label_pre
+            t1_select_num = min(mv_num * (step + 1), len(u_data))
+            t1_selected_idx = tagper1.select_top_data(t1_pred_score, t1_select_num)  # 从所有 u_data 里面选
+            t1_l_data, t1_select_pre = tagper1.move_unlabel_to_label_cpu(t1_selected_idx, t1_pred_y, u_data)
+            l_data = t1_l_data
         else:
             if os.path.exists(reid_path + '/tagper1/Dissimilarity_step_{}.ckpt'.format(step)) is True:
                 tagper1.resume(reid_path + '/tagper1/Dissimilarity_step_{}.ckpt'.format(step), step)
@@ -164,23 +177,34 @@ def main(args):
             # t2_mAP, t2_top1, t2_top5, t2_top10, t2_top20 = 0,0,0,0,0
             t1_pred_y, t1_pred_score, t1_label_pre = tagper1.estimate_label_atm3(u_data, l_data, one_shot)
             t2_pred_y, t2_pred_score, t2_label_pre = tagper2.estimate_label_atm3(u_data, l_data, one_shot)
-            score  = [t1_pred_score,t2_pred_score]
-            pred_score = np.mean(score,axis=1)
+            # score  = [t1_pred_score,t2_pred_score]
+            # pred_score = np.mean(score,axis=0)
 
             # 下面正对 reid 移动数据
             select_num = min(mv_num * (step + 1), len(u_data))
-            select_id,same_num = tagper1.select_top_data_except_different(pred_score,t1_pred_y,t2_pred_y,select_num)
-            l_data, select_pre = tagper1.move_unlabel_to_label_cpu(select_id, pred_score, u_data)
+            t1_selected_idx, t2_selected_idx, same_num, same_num_percent = tagper1.select_top_data_except_different(
+                t1_pred_score, t2_pred_score, t1_pred_y, t2_pred_y, select_num)
+            t1_l_data, t1_select_pre = tagper1.move_unlabel_to_label_cpu(t1_selected_idx, t1_pred_y, u_data)
+            t2_l_data, t2_select_pre = tagper2.move_unlabel_to_label_cpu(t2_selected_idx, t2_pred_y, u_data)
+            l_data = t1_l_data + t2_l_data
 
-            tagper1_file.write(
-                "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} len(l_data):{} label_pre:{:.2%}  select_num:{} select_pre:{:.2%}\n".format(
-                    int(step + 1), t1_mAP, t1_top1, t1_top5, t1_top10, t1_top20, len(l_data), t1_label_pre,
-                    select_num, select_pre))
-            print(
-                "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} len(l_data):{} label_pre:{:.2%}  select_num:{} select_pre:{:.2%}\n".format(
-                    int(step + 1), t1_mAP, t1_top1, t1_top5, t1_top10, t1_top20, len(l_data), t1_label_pre,
-                    select_num, select_pre))
+        tagper1_file.write(
+            "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} len(l_data):{} label_pre:{:.2%}  select_num:{} select_pre:{:.2%}\n".format(
+                int(step + 1), t1_mAP, t1_top1, t1_top5, t1_top10, t1_top20, len(t1_l_data), t1_label_pre,
+                select_num, t1_select_pre))
+        print(
+            "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} len(l_data):{} label_pre:{:.2%}  select_num:{} select_pre:{:.2%}\n".format(
+                int(step + 1), t1_mAP, t1_top1, t1_top5, t1_top10, t1_top20, len(t1_l_data), t1_label_pre,
+                select_num, t1_select_pre))
 
+        tagper2_file.write(
+            "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} len(l_data):{} label_pre:{:.2%}  select_num:{} select_pre:{:.2%}\n".format(
+                int(step + 1), t1_mAP, t1_top1, t1_top5, t1_top10, t1_top20, len(t2_l_data), t2_label_pre,
+                select_num, t2_select_pre))
+        print(
+            "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} len(l_data):{} label_pre:{:.2%}  select_num:{} select_pre:{:.2%}\n".format(
+                int(step + 1), t1_mAP, t1_top1, t1_top5, t1_top10, t1_top20, len(t2_l_data), t2_label_pre,
+                select_num, t2_select_pre))
 
         tapger_end = time.time()
 
@@ -196,7 +220,7 @@ def main(args):
 
     data_file.close()
     tagper1_file.close()
-    # tagper2_file.close()
+    tagper2_file.close()
     if (args.clock):
         exp_end = time.time()
         exp_time = exp_end - exp_start
@@ -236,6 +260,6 @@ if __name__ == '__main__':
     main(parser.parse_args())
 
     '''
-    python3.6  atm_par.py  --exp_order 3 --total_step 5 --train_tagper_step 3
+    python3.6  atm_par.py  --exp_order 4 --total_step 5 --train_tagper_step 3
 
     '''

@@ -382,7 +382,7 @@ class EUG():
             v[index[i]] = 1
         return v.astype('bool')
 
-    def select_top_data_except_different(self, pred_score1, pred_y1,pred_y2,nums_to_select):
+    def select_top_data_except_different(self, pred_score1,pred_score2, pred_y1,pred_y2,nums_to_select):
         different_flag = np.zeros((len(pred_y1)))
         same_num = 0
         for i in range(len(pred_y1)):
@@ -390,13 +390,23 @@ class EUG():
                 different_flag[i] = 1
                 same_num +=1
 
-        v = np.zeros(len(pred_score1))
-        index = np.argsort(-pred_score1)
-        index = index[different_flag==1]
-        num = min(len(index),nums_to_select)
-        for i in range(num):  #排序,求最前面的n个
-            v[index[i]] = 1
-        return v.astype('bool'),same_num,same_num/len(pred_y1)
+        v1= np.zeros(len(pred_score1))  # 初始化两个
+        v2 = np.zeros(len(pred_score2))
+        index1 = np.argsort(-pred_score1)
+        index2 = np.argsort(-pred_score2)
+        for i in range(nums_to_select):
+            v1[index1[i]] =1
+            v2[index2[i]] = 1
+            if different_flag[index1[i]] == 0 : # 两个标记不同
+                v1[index1[i]] =0
+            if different_flag[index2[i]] == 0 : # 两个标记不同
+                v2[index2[i]] =0
+        for i in range(len(v1)):
+            if v1[i]==1:
+                v2[i] = 0
+        print(v1)
+        print(v2)
+        return v1.astype('bool'), v2.astype('bool'), same_num,same_num/len(pred_y1)
 
 
 
