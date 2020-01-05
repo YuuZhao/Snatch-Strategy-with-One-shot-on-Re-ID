@@ -36,7 +36,7 @@ def main(args):
     l_data = []
     total_step = args.total_step
     mv_num = math.ceil(len(u_data) / total_step)  # 最后一轮必定不足add_num的数量
-    tagper_num = math.ceil(len(u_data) / args.train_tagper_step)
+    tagper_num = 200
     # 输出该轮训练关键的提示信息
     print(
         "{} training begin with dataset:{},batch_size:{},epoch:{},step_size:{},max_frames:{},total_step:{},add {} sample each step.".format(
@@ -94,7 +94,7 @@ def main(args):
         # 测试 train tagper之前的select_pre
         pred_y, pred_score, label_pre = reid.estimate_label_atm3(u_data, l_data, one_shot)  # 针对u_data进行标签估计
         selected_idx = reid.select_top_data(pred_score, min(mv_num * (step + 1), len(u_data)))
-        select_pre = reid.get_select_pre(selected_idx, pred_y, u_data)
+        reid_new_data, select_pre = reid.generate_new_train_data(selected_idx, pred_y, u_data)
 
         reid_end = time.time()
         data_file.write(
@@ -115,8 +115,12 @@ def main(args):
         #     train_tagper_data = one_shot+l_data+new_train_data
         #     tagper.train(train_tagper_data, step, tagper=1, epochs=args.epoch, step_size=args.step_size, init_lr=0.1)
         '''所有的tagper都重新训练'''
+        seleted_num_for_tagper = tagper_num * step
+        if seleted_num_for_tagper == 0: # 不需要训练tagper
+            l_data = reid_new_data
+            continue
         tagper.resume(osp.join(reid_path, 'Dissimilarity_step_{}.ckpt'.format(step)), step)
-        selected_idx = tagper.select_top_data(pred_score, min(tagper_num * (step + 1), len(u_data)))  # 训练tagper的数量也递增
+        selected_idx = tagper.select_top_data(pred_score, seleted_num_for_tagper)  # 训练tagper的数量也递增
         new_train_data = tagper.generate_new_train_data_only(selected_idx, pred_y,
                                                              u_data)  # 这个选择准确率应该是和前面的label_pre是一样的.
         train_tagper_data = one_shot + new_train_data
@@ -160,7 +164,7 @@ def main(args):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Snatch Strategy')
+    parser = argparse.ArgumentParser(description='ATM')
     parser.add_argument('-d', '--dataset', type=str, default='DukeMTMC-VideoReID', choices=datasets.names())  # s
     parser.add_argument('-b', '--batch-size', type=int, default=16)
     parser.add_argument('--epoch', type=int, default=70)
@@ -168,7 +172,7 @@ if __name__ == '__main__':
     working_dir = os.path.dirname(os.path.abspath(__file__))
     parser.add_argument('--data_dir', type=str, metavar='PATH', default=os.path.join(working_dir, 'data'))  # 加载数据集的根目录
     parser.add_argument('--logs_dir', type=str, metavar='PATH', default=os.path.join(working_dir, 'logs'))  # 保持日志根目录
-    parser.add_argument('--exp_name', type=str, default="gradully_supplement")
+    parser.add_argument('--exp_name', type=str, default="atm_dgi")
     parser.add_argument('--exp_order', type=str, default="1")
     parser.add_argument('--resume', type=bool, default=False)
     parser.add_argument('--mode', type=str, choices=["Classification", "Dissimilarity"],
@@ -178,7 +182,7 @@ if __name__ == '__main__':
     parser.add_argument('--gdraw', type=bool, default=False)  # 是否实时绘图
     # the key parameters is following
     parser.add_argument('--total_step', type=int, default=5)  # 默认总的五次迭代.
-    parser.add_argument('--train_tagper_step', type=float, default=5)  # 用于训练 tagper的 step 数
+    # parser.add_argument('--train_tagper_step', type=float, default=5)  # 用于训练 tagper的 step 数
     parser.add_argument('--is_baseline', type=bool, default=False)  # 默认不是baseline
 
     # 下面是暂时不知道用来做什么的参数
@@ -188,3 +192,9 @@ if __name__ == '__main__':
     parser.add_argument('-l', '--l', type=float)
     parser.add_argument('--continuous', action="store_true")
     main(parser.parse_args())
+
+
+
+    '''
+    python3.6 atm_rc_cpu02.py  --exp_order 6 --total_step 5 
+    '''
