@@ -49,8 +49,7 @@ def main(args):
     # 第三部分要说明关键参数的设定
     sys.stdout = Logger(osp.join(args.logs_dir, args.dataset,args.exp_name,args.exp_order,'log'+time.strftime(".%m_%d_%H-%M-%S")+'.txt'))
     data_file =codecs.open(osp.join(args.logs_dir, args.dataset,args.exp_name,args.exp_order,'data.txt'),mode='a')
-    if args.clock :
-        time_file =codecs.open(osp.join(args.logs_dir, args.dataset,args.exp_name,args.exp_order,'time.txt'),mode='a')
+    time_file =codecs.open(osp.join(args.logs_dir, args.dataset,args.exp_name,args.exp_order,'time.txt'),mode='a')
     save_path = osp.join(args.logs_dir, args.dataset,args.exp_name,args.exp_order)
 
     resume_step, ckpt_file = -1, ''
@@ -150,9 +149,9 @@ if __name__ == '__main__':
     working_dir = os.path.dirname(os.path.abspath(__file__))
     parser.add_argument('--data_dir', type=str, metavar='PATH',default=os.path.join(working_dir, 'data'))  # 加载数据集的根目录
     parser.add_argument('--logs_dir', type=str, metavar='PATH',default=os.path.join(working_dir, 'logs'))  # 保持日志根目录
-    parser.add_argument('--exp_name',type=str,default="nlvm-b1")
+    parser.add_argument('--exp_name',type=str,default="vsm2020")
     parser.add_argument('--exp_order',type=str,default="1")
-    parser.add_argument('--resume', type=str, default=None)
+    parser.add_argument('--resume', type=bool, default=True)
     parser.add_argument('--mode', type=str, choices=["Classification", "Dissimilarity"], default="Dissimilarity")   #这个考虑要不要取消掉
     parser.add_argument('--max_frames', type=int, default=400)
     parser.add_argument('--clock',type=bool, default=True)  #是否记时
@@ -165,3 +164,7 @@ if __name__ == '__main__':
     parser.add_argument('-l', '--l', type=float)
     parser.add_argument('--continuous', action="store_true")
     main(parser.parse_args())
+
+    '''
+    python3.6 nlvm.py --exp_order 1 --percent_vari 0.9 
+    '''
