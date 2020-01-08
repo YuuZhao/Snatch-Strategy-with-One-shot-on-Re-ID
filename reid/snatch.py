@@ -426,6 +426,14 @@ class EUG():
         return selection
 
     def select_top_data_nlvm_b6(self, pred_score, dists, new_nums_to_select, percent_vari):
+        '''
+        这个函数求的是 方差和距离共同选择的那一部分.按道理来说 选择出来的数量会很少.
+        :param pred_score:
+        :param dists:
+        :param new_nums_to_select:
+        :param percent_vari:
+        :return:
+        '''
         # pred_score = pred_score.T # if necessary
         # 方案2, 求最近的P%样本的方差
         N_u, N_l = dists.shape
@@ -433,7 +441,8 @@ class EUG():
         if vari_num <= new_nums_to_select:  # 就不需要在判断方差了
             return self.select_top_data(pred_score, new_nums_to_select)
         stds = np.zeros(N_u)
-        selection1 = selection2 = np.zeros(N_u, 'bool')
+        selection1= np.zeros(N_u, 'bool')
+        selection2 = np.zeros(N_u, 'bool')
         for i in range(N_u):  # 对所有的值求方差
             score = -dists[i]
             # 求k近邻
