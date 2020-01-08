@@ -46,9 +46,9 @@ def main(args):
 
     # 输出该轮训练关键的提示信息
     print(
-        "{} training begin with dataset:{},batch_size:{},epoch:{},step_size:{},max_frames:{},total_step:{},EF:{},q:{},percent_vari:{}".format(
+        "{} training begin with dataset:{},batch_size:{},epoch:{},step_size:{},max_frames:{},total_step:{},EF:{},q:{},vari_percent:{}".format(
             args.exp_name, args.dataset, args.batch_size, args.epoch, args.step_size, args.max_frames, total_step + 1,
-            args.EF, args.q, args.percent_vari))
+            args.EF, args.q, args.vari_percent))
 
     # 指定输出文件
     # 第三部分要说明关键参数的设定
@@ -88,8 +88,8 @@ def main(args):
                                                                                                         step + 1,
                                                                                                         total_step + 1,
                                                                                                         save_path))
-        print("key parameters contain EF:{},q:{},percent_vari:{}. Nums_been_selected:{}".format(args.EF, args.q,
-                                                                                                args.percent_vari,
+        print("key parameters contain EF:{},q:{},vari_percent:{}. Nums_been_selected:{}".format(args.EF, args.q,
+                                                                                                args.vari_percent,
                                                                                                 nums_to_select))
 
         # 开始训练
@@ -129,13 +129,15 @@ def main(args):
 
         # 输出该epoch的信息
         data_file.write(
-            "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} nums_selected:{}  selected_percent:{:.2%} label_pre:{:.2%} select_pre:{:.2%} select_pre_cre:{:.2%} select_pre_uncre:{:.2%}\n".format(
+            "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} nums_selected:{}  selected_percent:{:.2%} label_pre:{:.2%} select_pre:{:.2%} select_pre_cre:{:.2%} select_pre_uncre:{:.2%} num_of_uncredibel:{}\n".format(
                 int(step + 1), mAP, top1, top5, top10, top20, nums_to_select,
-                nums_to_select / len(u_data), label_pre, select_pre, select_pre_cre, select_pre_uncre))
+                nums_to_select / len(u_data), label_pre, select_pre, select_pre_cre, select_pre_uncre,
+                num_of_uncredibel))
         print(
-            "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} nums_selected:{}  selected_percent:{:.2%} label_pre:{:.2%} select_pre:{:.2%} select_pre_cre:{:.2%} select_pre_uncre:{:.2%}\n".format(
+            "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} nums_selected:{}  selected_percent:{:.2%} label_pre:{:.2%} select_pre:{:.2%} select_pre_cre:{:.2%} select_pre_uncre:{:.2%} num_of_uncredibel:{}\n".format(
                 int(step + 1), mAP, top1, top5, top10, top20, nums_to_select,
-                nums_to_select / len(u_data), label_pre, select_pre, select_pre_cre, select_pre_uncre))
+                nums_to_select / len(u_data), label_pre, select_pre, select_pre_cre, select_pre_uncre,
+                num_of_uncredibel))
 
         if args.clock:
             train_time = evaluate_start - train_start
@@ -163,17 +165,17 @@ if __name__ == '__main__':
     parser.add_argument('-d', '--dataset', type=str, default='DukeMTMC-VideoReID',
                         choices=datasets.names())  # DukeMTMC-VideoReID \mars
     parser.add_argument('-b', '--batch-size', type=int, default=16)
-    parser.add_argument('--epoch', type=int, default=40)
-    parser.add_argument('--step_size', type=int, default=30)
+    parser.add_argument('--epoch', type=int, default=70)
+    parser.add_argument('--step_size', type=int, default=55)
     parser.add_argument('--EF', type=float, default=10)  # 渐进采样系数
     parser.add_argument('--q', type=float, default=1)  # 渐进采样指数
-    parser.add_argument('--vari_percent', type=float, default=0.8)  # 方差的筛选范围.
+    parser.add_argument('--vari_percent', type=float, default=0.2)  # 方差的筛选范围.
     working_dir = os.path.dirname(os.path.abspath(__file__))
     parser.add_argument('--data_dir', type=str, metavar='PATH', default=os.path.join(working_dir, 'data'))  # 加载数据集的根目录
     parser.add_argument('--logs_dir', type=str, metavar='PATH', default=os.path.join(working_dir, 'logs'))  # 保持日志根目录
-    parser.add_argument('--exp_name', type=str, default="nlvm-b1")
+    parser.add_argument('--exp_name', type=str, default="vrm")
     parser.add_argument('--exp_order', type=str, default="1")
-    parser.add_argument('--resume', type=str, default=None)
+    parser.add_argument('--resume', type=bool, default=True)
     parser.add_argument('--mode', type=str, choices=["Classification", "Dissimilarity"],
                         default="Dissimilarity")  # 这个考虑要不要取消掉
     parser.add_argument('--max_frames', type=int, default=400)
@@ -187,3 +189,9 @@ if __name__ == '__main__':
     parser.add_argument('-l', '--l', type=float)
     parser.add_argument('--continuous', action="store_true")
     main(parser.parse_args())
+
+    '''
+    python3.6 vrm.py --exp_order 0 --vari_percent 0
+    python3.6 vrm.py --exp_order 1 --vari_percent 0.1 
+    python3.6 vrm.py --exp_order 2 --vari_percent 0.2 
+    '''

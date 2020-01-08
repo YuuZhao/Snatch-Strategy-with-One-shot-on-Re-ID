@@ -304,6 +304,13 @@ class EUG():
             score = - dists[i]
             topk_idxs = np.argpartition(score, 2)[:2]
             stds[i] = score[topk_idxs].std()
+
+        #对方差进行正则化
+        stds_mean = stds.mean(axis=0)
+        stds_std = stds.std(axis=0)
+        stds -=stds_mean
+        stds /=stds_std
+        new_vari_value = 0
         index_vari = np.argsort(stds)
         if vari_value == 0:  # 按照百分百划分值
             print('variance depend on vari_percent(={})'.format(vari_percent))
@@ -312,6 +319,7 @@ class EUG():
                 vari_idx[index_vari[i]] = 1  # 这部分数据不可信
             # 确定方差的值
             new_vari_value = stds[index_vari[vari_num]]  # 方差比这个小的不可信
+            print('new_vari_value={}'.format(new_vari_value))
 
         else:  # 以vari_value 为阈值来做选择.
             print('variance depend on vari_value(={})'.format(vari_value))
@@ -334,7 +342,7 @@ class EUG():
                                                                                                             num_of_credible,
                                                                                                             num_of_uncredibel))
         return select_credible.astype('bool'), select_uncredible.astype(
-            'bool'), vari_value, num_of_credible, num_of_uncredibel
+            'bool'), new_vari_value, num_of_credible, num_of_uncredibel
 
     def estimate_label_atm3(self, u_data, l_data, one_shot):
         u_feas = self.get_feature(u_data)
