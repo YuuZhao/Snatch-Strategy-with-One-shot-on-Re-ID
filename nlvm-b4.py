@@ -71,6 +71,8 @@ def main(args):
     expend_nums_to_select = 0
     new_train_data = l_data
     step = 0
+    if args.resume:
+        step = resume_step
     step_size = []
     isout = 0  # 用来标记是否应该结束训练
 
