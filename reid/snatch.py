@@ -289,6 +289,16 @@ class EUG():
         dists = np.vstack(dists)
         return labels, scores, num_correct_pred / u_feas.shape[0], dists
 
+    def analysis(self, pred_y,pred_score):
+        v = np.zeros(len(pred_score))
+        index = np.argsort(-pred_score)
+        for i in range(len(index)):
+            if self.u_label[index[i]] == int(pred_y[index[i]]):
+                v[i] = 1
+            else :
+                v[i] = 0
+        return  v
+
     def select_top_data(self, pred_score, nums_to_select):
         v = np.zeros(len(pred_score))
         index = np.argsort(-pred_score)
@@ -305,11 +315,11 @@ class EUG():
             topk_idxs = np.argpartition(score, 2)[:2]
             stds[i] = score[topk_idxs].std()
 
-        #对方差进行正则化
+        # 对方差进行正则化
         stds_mean = stds.mean(axis=0)
         stds_std = stds.std(axis=0)
-        stds -=stds_mean
-        stds /=stds_std
+        stds -= stds_mean
+        stds /= stds_std
         new_vari_value = 0
         index_vari = np.argsort(stds)
         if vari_value == 0:  # 按照百分百划分值
@@ -373,11 +383,12 @@ class EUG():
             label_pre = num_correct_pred / u_feas.shape[0]
         print('{} predictions on all the unlabeled data: {} of {} is correct, accuracy = {:0.3f}'.format(self.mode,
                                                                                                          num_correct_pred,
-                                                                                                         u_feas.shape[0],
+                                                                                                         u_feas.shape[
+                                                                                                             0],
                                                                                                          label_pre))
 
         dists = np.vstack(dists)
-        return labels,scores,label_pre,dists
+        return labels, scores, label_pre, dists
 
     def select_top_data_nlvm_b1(self, pred_score, dists, new_expend_nums_to_select, new_nums_to_select):
         # pred_score = pred_score.T # if necessary
@@ -404,6 +415,36 @@ class EUG():
         select_num_actual = len(index_nonzero[0])
         print("plan to select {}, selected {} in acrually.".format(new_nums_to_select, select_num_actual))
         return selection2
+
+    def select_top_data_vcf01(self, pred_score, dists, new_expend_nums_to_select, new_nums_to_select, new_query_nums):
+
+        N_u, N_l = dists.shape
+        stds = np.zeros(N_u)
+
+        selection = np.zeros(N_u, 'bool')
+        index_dist = np.argsort(-pred_score)  # 按照距离排序
+        index_credibel = index_dist[:new_query_nums]
+        index_query = index_dist[new_query_nums:new_expend_nums_to_select]
+        # 求query范围内的方差
+        for i in index_query:
+            score = - dists[i]
+            # 求k近邻
+            # topk = int(N_l * percent_P)
+            topk = 2
+            topk_idxs = np.argpartition(score, topk)[:topk]
+            stds[i] = score[topk_idxs].std()  # 这里要求pre_score 要是二维的才行
+        # 根据方差排序
+        index_vari = np.argsort(-stds)
+        index_vari_select = index_vari[:new_nums_to_select - new_query_nums]
+        selection[index_credibel] = True
+        selection[index_vari_select] = True
+
+        index_nonzero = np.nonzero(selection)  # 返回非0元素的索引
+        select_num_actual = len(index_nonzero[0])
+        print("[0:{}] is selected according to distance. [{}:{}] sorted by variance, [{}:{}] is selected.".format(
+            new_query_nums, new_query_nums, new_expend_nums_to_select, new_query_nums, new_nums_to_select, ))
+        print("plan to select {}, selected {} in acrually.".format(new_nums_to_select, select_num_actual))
+        return selection
 
     def select_top_data_nlvm_b5(self, pred_score, dists, new_nums_to_select, percent_vari):
         # pred_score = pred_score.T # if necessary
@@ -441,7 +482,7 @@ class EUG():
         if vari_num <= new_nums_to_select:  # 就不需要在判断方差了
             return self.select_top_data(pred_score, new_nums_to_select)
         stds = np.zeros(N_u)
-        selection1= np.zeros(N_u, 'bool')
+        selection1 = np.zeros(N_u, 'bool')
         selection2 = np.zeros(N_u, 'bool')
         for i in range(N_u):  # 对所有的值求方差
             score = -dists[i]
@@ -547,7 +588,9 @@ class EUG():
                 total += 1
                 if self.u_label[i] == int(pred_y[i]):
                     correct += 1
-        acc = correct / total
+        acc = 0
+        if total != 0:
+            acc = correct / total
 
         new_train_data = self.l_data + seletcted_data
         print("selected pseudo-labeled data: {} of {} is correct, accuracy: {:0.4f}  new train data: {}".format(
