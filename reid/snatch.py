@@ -289,6 +289,31 @@ class EUG():
         dists = np.vstack(dists)
         return labels, scores, num_correct_pred / u_feas.shape[0], dists
 
+    def estimate_label_for_analysis(self):
+        # extract feature
+        u_feas = self.get_feature(self.u_data)
+        l_feas = self.get_feature(self.l_data)
+        print("u_features", u_feas.shape, "l_features", l_feas.shape)
+
+        scores = np.zeros((u_feas.shape[0]))
+        labels = np.zeros((u_feas.shape[0]))
+        acc_list = np.zeros((u_feas.shape[0]))
+        vari = np.zeros((u_feas.shape[0]))
+
+        for idx, u_fea in enumerate(u_feas):
+            diffs = l_feas - u_fea
+            dist = np.linalg.norm(diffs, axis=1)
+            topk_idxs = np.argpartition(dist, 2)[:2]
+            vari[idx] = dist[topk_idxs].std()
+            index_min = np.argmin(dist)
+
+            scores[idx] =  dist[index_min]  #以最小距离作为评分标识
+            labels[idx] = self.l_label[index_min]  # take the nearest labled neighbor as the prediction label
+            if self.u_label[idx] == labels[idx]:  #标签估计正确
+                acc_list[idx]=1
+
+        return labels, self.u_label, scores, acc_list, vari
+
     def analysis(self, pred_y,pred_score):
         v = np.zeros(len(pred_score))
         index = np.argsort(-pred_score)
