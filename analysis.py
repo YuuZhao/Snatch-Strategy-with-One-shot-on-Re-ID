@@ -102,4 +102,5 @@ if __name__ == '__main__':
     用于生成制定实验数据集,生成的dist,acc_list,vari list.其中acc_list 标签估计正误文件(bool列表,.npy文件)
     运行命令如:
     python3.6  analysis.py --exp_name gradually_11step --exp_order 0
+    python3.6  analysis.py --exp_name gradually_11step --exp_order 0  --dataset mars  --max_frames 100
     '''
