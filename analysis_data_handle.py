@@ -14,14 +14,6 @@ font2={
         'size':22,
     }
 
-'''
-    文件描述 :
-    this file is used to draw figure according  to the data produced by 'analysis.py'.
-    you must give the special parameters 'exp_name' and 'exp_order' which indicate the location of the data to run this files.
-    运行命令如:
-    python3.6  analysis_data_handle.py --exp_name gradually_11step --exp_order 0
-'''
-
 
 
 def main(args):
@@ -132,7 +124,7 @@ def main(args):
         plt.figure(figsize=(12,6),dpi=300)
         #dists_files = os.listdir(dists_path)
         #dists_files.sort() #this method can not perform as expectation fully.
-        for i in range(11):
+        for i in range(8):
             dists_file = 'dists{}.npy'.format(i)
             dists = np.load(osp.join(dists_path,dists_file))
             x = np.arange(dists.shape[0])
@@ -148,7 +140,7 @@ def main(args):
         plt.figure(figsize=(12, 6), dpi=300)
         #vari_files = os.listdir(vari_path)
         ##vari_files.sort()
-        for i in range(11):
+        for i in range(8):
             vari_file = 'vari{}.npy'.format(i)
             vari = np.load(osp.join(vari_path, vari_file))
             x = np.arange(vari.shape[0])
@@ -168,7 +160,7 @@ def main(args):
         '''
         print('excute function 2')
         plt.figure(figsize=(12, 6), dpi=300)
-        for i in range(11):
+        for i in range(8):
             #plt.subplot(10, 1, step + 1)
             #print('handle dists{}.npy'.format(i))
             dists_file = 'dists{}.npy'.format(i)
@@ -193,7 +185,7 @@ def main(args):
         plt.show()
 
         plt.figure(figsize=(12, 6), dpi=300)
-        for i in range(11):
+        for i in range(8):
             vari_file = 'vari{}.npy'.format(i)
             vari = np.load(osp.join(vari_path, vari_file))
             acc_file = 'acc_list{}.npy'.format(i)
@@ -221,7 +213,7 @@ def main(args):
         '''
         print('excute function 3')
         plt.figure(figsize=(12, 6), dpi=300)
-        for i in range(11):
+        for i in range(8):
             dists_file = 'dists{}.npy'.format(i)
             dists = np.load(osp.join(dists_path, dists_file))
             #acc_file = 'acc_list{}.npy'.format(i)
@@ -244,8 +236,8 @@ def main(args):
         plt.suptitle('variance sort by distance')
         plt.xlabel('u_data')
         plt.ylabel('variance')
-        for i in range(11):
-            plt.subplot(3,4,i+1)
+        for i in range(8):
+            plt.subplot(3,3,i+1)
             dists_file = 'dists{}.npy'.format(i)
             dists = np.load(osp.join(dists_path, dists_file))
             # acc_file = 'acc_list{}.npy'.format(i)
@@ -292,7 +284,7 @@ def main(args):
         plt.show()
 
 
-    elif args.function == 5:
+    elif args.function == 5:  #not run again
         '''
         analyze the relationship of dists,vari and acc_list.
         take  the dists x axis, draw the vari and FN_acc curves sorted by dists up.
@@ -301,8 +293,8 @@ def main(args):
         plt.suptitle('relationship between variance, dists, acc_list[{}:{}]'.format(args.start_point,args.end_point),fontsize=22)
         plt.xlabel('distance')
         plt.ylabel('variance')
-        for i in range(11):
-            ax2 =plt.subplot(3, 4, i + 1)
+        for i in range(8):
+            ax2 =plt.subplot(3, 3, i + 1)
             dists_file = 'dists{}.npy'.format(i)
             dists = np.load(osp.join(dists_path, dists_file))
             acc_file = 'acc_list{}.npy'.format(i)
@@ -325,7 +317,7 @@ def main(args):
             lns1 = ax1.plot(x[args.start_point:args.end_point], vari[args.start_point:args.end_point], color='coral', label='model_{}_vari'.format(i))
             lns =lns1+lns2+lns3
             labs = [l.get_label() for l in lns]
-            if i==10:
+            if i==7:
                 ax1.legend(lns,labs, loc='lower right',bbox_to_anchor=(2,0))
             ax1.set_xlabel('distance')
             ax1.set_ylabel('variance')
@@ -333,7 +325,7 @@ def main(args):
         plt.savefig(osp.join(input_path, 'dists&vari&FNacc[{}:{}]_11_analysis_{}'.format(args.start_point,args.end_point,args.function)))
         #plt.show()
 
-    elif args.function == 6:
+    elif args.function == 6: #jump out
         '''
         analyze the relationship of dists,vari and acc_list. (variance second sampling)
         take  the dists x axis, draw the vari and FN_acc curves sorted by dists up.
@@ -343,7 +335,7 @@ def main(args):
                      fontsize=18)
         plt.xlabel('distance')
         plt.ylabel('variance')
-        for i in [6]:
+        for i in [0]:
             ax2 = plt.subplot(1, 1, 1)
             dists_file = 'dists{}.npy'.format(i)
             dists = np.load(osp.join(dists_path, dists_file))
@@ -401,7 +393,7 @@ def main(args):
 
 
 
-    elif args.function == 7:
+    elif args.function == 7: #jump out
         '''
         analyze the relationship of dists,vari and acc_list. (variance second sampling)
         take  the dists x axis, draw the vari and FN_acc curves sorted by dists up.
@@ -416,16 +408,31 @@ def main(args):
         aim to get acc information for model0-model10
         '''
         def sampling_curve(x): # x in [0,10]
-            return math.floor(7670 * x /11)
+            return math.floor( 1494* x /8)  #7673
 
-        second_samply_rate_list = [0.95,0.9,0.85,0.8,0.75,0.7,0.75,0.8,0.85,0.9,0.95]
-        for i in range(11):
-            args.end_point = sampling_curve(i+1)
-            #args.second_samply_rate = second_samply_rate_list[i]
+        # expand_rate = [1.0,1.02,1.04,1.06,1.08,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,2.0]
+        # query_rate = [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1]
+        expand_rate = [1.1]
+        query_rate = [0.8]
 
-            args.model_order = i
-            acc_file_name = osp.join(input_path, 'acc_file_[{}:{}].txt'.format(args.query_rate,args.expand_rate))
-            function7(args,acc_file_name)
+        for er in expand_rate:
+            acc_file_name = osp.join(input_path, 'acc_file_[0.8:{}].txt'.format(er))
+            args.expand_rate = er
+            args.query_rate = 0.8
+            for i in range(8):
+                args.model_order = i
+                args.end_point = sampling_curve(i+1)
+                function7(args, acc_file_name)
+        # for qr in query_rate:
+        #     acc_file_name = osp.join(input_path, 'acc_file_[{}:1.1].txt'.format(qr))
+        #     args.expand_rate = 1.1
+        #     args.query_rate = qr
+        #     for i in range(8):
+        #         args.model_order = i
+        #         args.end_point = sampling_curve(i + 1)
+        #         function7(args, acc_file_name)
+
+
 
 
     elif args.function==9:
@@ -433,10 +440,10 @@ def main(args):
         draw acc_file curve according to txt-data in acc_file folder.
         '''
         acc_file_path = osp.join(input_path,'acc_file')
-        x = [1.02,1.04,1.06,1.08,1.1,1.2,1.3,1.4,1.6,1.8,2.0]
+        x = [1.0,1.02,1.04,1.06,1.08,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,2.0]
         rate_list =[]
         for expand_rate in x:
-            acc_file = codecs.open(osp.join(acc_file_path,'acc_file_[0.7:{}].txt'.format(expand_rate)),'r','utf-8')
+            acc_file = codecs.open(osp.join(acc_file_path,'acc_file_[0.8:{}].txt'.format(expand_rate)),'r','utf-8')
             lines = acc_file.readlines()
             model_list = []
             for line in lines:
@@ -453,14 +460,17 @@ def main(args):
         plt.figure(figsize=(20,12), dpi=300)
         # plt.xlabel('expand_rate')
         # plt.ylabel('accuracy_percent')
-        for model_order in range(11):
-            plt.subplot(3,4,model_order+1)
+        for model_order in range(8):
+            plt.subplot(3,3,model_order+1)
             acc1_percent = rate_list[:,model_order,1]
             acc1_num = rate_list[:,model_order,0]
             acc2_percent = rate_list[:,model_order, 3]
             acc2_num = rate_list[:,model_order, 2]
             acc3_percent = rate_list[:,model_order, 5]
             acc3_num = rate_list[:,model_order, 4]
+            max_point = np.argmax(acc3_percent)
+            lacal_x = x[max_point]
+            plt.annotate(str([lacal_x,acc3_percent[max_point]]), xy=(lacal_x, acc3_percent[max_point]), fontsize=15)
             plt.plot(x,acc1_percent,label='acc1_percent')
             plt.plot(x,acc2_percent,label='acc2_percent')
             plt.plot(x,acc3_percent,label='acc3_percent')
@@ -475,7 +485,7 @@ def main(args):
         draw acc_file curve according to txt-data in acc_file folder.
         '''
         acc_file_path = osp.join(input_path,'acc_file')
-        x = [0.3,0.4,0.5,0.6,0.7,0.8,0.9]
+        x = [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1]
         rate_list =[]
         for expand_rate in x:
             acc_file = codecs.open(osp.join(acc_file_path,'acc_file_[{}:1.1].txt'.format(expand_rate)),'r','utf-8')
@@ -495,14 +505,17 @@ def main(args):
         plt.figure(figsize=(20,12), dpi=300)
         # plt.xlabel('expand_rate')
         # plt.ylabel('accuracy_percent')
-        for model_order in range(11):
-            plt.subplot(3,4,model_order+1)
+        for model_order in range(8):
+            plt.subplot(3,3,model_order+1)
             acc1_percent = rate_list[:,model_order,1]
             acc1_num = rate_list[:,model_order,0]
             acc2_percent = rate_list[:,model_order, 3]
             acc2_num = rate_list[:,model_order, 2]
             acc3_percent = rate_list[:,model_order, 5]
             acc3_num = rate_list[:,model_order, 4]
+            max_point = np.argmax(acc3_percent)
+            lacal_x = x[max_point]
+            plt.annotate(str([lacal_x,acc3_percent[max_point]]), xy=(lacal_x, acc3_percent[max_point]), fontsize=15)
             plt.plot(x,acc1_percent,label='acc1_percent')
             plt.plot(x,acc2_percent,label='acc2_percent')
             plt.plot(x,acc3_percent,label='acc3_percent')
@@ -512,29 +525,152 @@ def main(args):
             plt.legend(loc='best')
         plt.savefig(osp.join(input_path,'analysisi_{}'.format(args.function)))
 
+    elif args.function == 11: # based on function 8
+        query_rate_list = []
+        expand_rate_list = []
+        Nu = 0
+        key_name = ''
+        if args.dataset == 'mars':
+            query_rate_list=[0.4,0.5,0.6,0.7,0.8,0.9,1,1]
+            expand_rate_list = [1.2,1.1,1.08,1.06,1.04,1.02,1,1]
+            Nu = 7673
+        else:
+            query_rate_list=[0.3,0.4,0.5,0.6,0.7,0.8,0.9,1]
+            expand_rate_list = [1.3,1.2, 1.1, 1.08, 1.06, 1.04, 1.02, 1]
+            Nu=1494
+        if args.is_best_para ==1:
+            key_name = 'best_parameter'
+        else:
+            key_name = 'q_half_e'
+
+        def sampling_curve(x): # x in [0,10]
+            return math.floor( Nu * x / len(query_rate_list))  #7673
+
+        acc_file_name = osp.join(input_path, '{}_{}.txt'.format(key_name,args.function))
+        plt.figure(figsize=(20, 14), dpi=300)
+        plt.suptitle(
+            '{}_of EF15_{}'.format(key_name,args.function),fontsize=18)
+        for i in range(len(query_rate_list)): # huizhi model ge subfigure
+            args.end_point = sampling_curve(i+1)
+            args.expand_rate = expand_rate_list[i]
+            if args.is_best_para ==1:
+                args.query_rate = query_rate_list[i]
+            else:
+                args.query_rate = args.expand_rate / 2
+            ax2 = plt.subplot(3, 3, i+1)
+            dists_file = 'dists{}.npy'.format(i)
+            dists = np.load(osp.join(dists_path, dists_file))
+            list_length = dists.shape[0]
+            acc_file = 'acc_list{}.npy'.format(i)
+            acc_list = np.load(osp.join(acc_path, acc_file))
+            vari_file = 'vari{}.npy'.format(i)
+            vari = np.load(osp.join(vari_path, vari_file))
+
+            expand_to_num = math.floor(args.end_point * args.expand_rate)
+            query_start_num = math.floor(args.end_point * args.query_rate)
+            if expand_to_num >= list_length:
+                expand_to_num = list_length - 1
+
+            index1 = np.argsort(dists)
+            vari_sort_distance = vari[index1]
+
+            x = np.arange(list_length)
+            acc_sort_distance = acc_list[index1]
+            FNacc1 = np.zeros(list_length)
+            for j in range(list_length):  # 依次求acc
+                FNacc1[j] = acc_sort_distance[0:j + 1].sum() / (j + 1)
+            lns2 = ax2.plot(x[args.start_point:expand_to_num], FNacc1[args.start_point:expand_to_num],
+                            label='model_{}_FNacc'.format(i))
+            lns3 = ax2.plot(x[args.start_point:expand_to_num],
+                            acc_sort_distance[args.start_point:expand_to_num] * 0.2,
+                            'bo',
+                            ms=1, color='g', label='model_{}_acc_list'.format(i))
+            ax1 = ax2.twinx()
+            lns1 = ax1.plot(x[args.start_point:expand_to_num], vari_sort_distance[args.start_point:expand_to_num],
+                            color='coral',
+                            label='model_{}_vari'.format(i))
+
+            # resort by variance in [query_start_num:expand_to_num]
+            acc1 = acc_sort_distance[:args.end_point].sum()  #
+            vari_range = vari_sort_distance[:expand_to_num]  #
+            index2 = np.argsort(-vari_range)  # down sort
+            second_sampling_index2 = index2[:args.end_point]
+            acc_sort_variance = acc_sort_distance[second_sampling_index2]
+            acc2 = acc_sort_variance.sum()  # /second_samping_num
+            # vari_range2 = vari_sort_distance[query_start_num:expand_to_num]
+            index3 = np.argsort(-vari_sort_distance[query_start_num:expand_to_num]) + query_start_num
+            second_sampling_index3 = np.append(np.arange(query_start_num),
+                                               index3[:args.end_point - query_start_num])
+            acc_sort_variance3 = acc_sort_distance[second_sampling_index3]
+            acc3 = acc_sort_variance3.sum()
+            print('second_sampling_index3\'s length ={}'.format(len(second_sampling_index3)))
+            print(
+                'model_{} :: acc1:{}/{:.2%}, acc2:{}/{:.2%} acc3:{}/{:.2%}'.format(i, acc1, acc1 / args.end_point,
+                                                                                   acc2,
+                                                                                   acc2 / args.end_point, acc3,
+                                                                                   acc3 / args.end_point))
+            acc_file = codecs.open(acc_file_name, mode='a')
+            acc_file.write('{}/{:.2%},{}/{:.2%},{}/{:.2%}\n'.format(acc1, acc1 / args.end_point,
+                                                                    acc2,
+                                                                    acc2 / args.end_point, acc3,
+                                                                    acc3 / args.end_point))
+
+            vari_flag = vari_sort_distance[:expand_to_num]
+            for j in range(expand_to_num):
+                if j not in second_sampling_index3:
+                    # print("not in index2")
+                    vari_flag[j] = 0.3
+            lns4 = ax1.plot(x[args.start_point:expand_to_num], vari_flag, 'bo', ms=1,
+                            label='model_{}_sec_samp'.format(i),
+                            color='r')
+            lns = lns1 + lns2 + lns3 + lns4
+            labs = [l.get_label() for l in lns]
+            # ax1.legend(lns, labs, loc='best')
+            if i == len(query_rate_list)-1:
+                ax1.legend(lns, labs, loc='lower right', bbox_to_anchor=(2, 0))
+            ax1.set_xlabel('distance')
+            ax1.set_ylabel('variance')
+            ax2.set_ylabel('FN_acc')
+        plt.savefig(osp.join(input_path,'{}_of_EF15_{}'.format(key_name,args.function)))
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    elif args.function == 12: # based on function 9 and 10
+        best_parameter_file = codecs.open(osp.join(input_path,'best_parameter_11.txt'),'r','utf-8')
+        q_half_e_file = codecs.open(osp.join(input_path,'q_half_e_11.txt'),'r','utf-8')
+        bp_infor = best_parameter_file.readlines()
+        bp_model_list = []
+        for line in bp_infor:
+            acc_value = []
+            infor = line.strip().split(',')
+            for acc_info in infor:
+                value = int(acc_info.split('/')[0].strip('.0'))
+                percent = float(acc_info.split('/')[1].strip('%'))
+                acc_value.extend([value, percent])
+            bp_model_list.append(acc_value)
+        qe_infor = q_half_e_file.readlines()
+        qe_model_list = []
+        for line in qe_infor:
+            acc_value = []
+            infor = line.strip().split(',')
+            for acc_info in infor:
+                value = int(acc_info.split('/')[0].strip('.0'))
+                percent = float(acc_info.split('/')[1].strip('%'))
+                acc_value.extend([value, percent])
+            qe_model_list.append(acc_value)
+        # until there ,all the data hava been extracted.
+        bp_model_list = np.array(bp_model_list)
+        qe_model_list = np.array(qe_model_list)
+        plt.figure(figsize=(20, 14), dpi=300)
+        for model in range(len(bp_model_list)):
+            plt.subplot(3,3,model+1)
+            x = np.arange(3)
+            y1 = bp_model_list[model,[1,3,5]]
+            y2 = qe_model_list[model,[1,3,5]]
+            plt.plot(x,y2,label = 'q_half_e')
+            plt.plot(x, y1, label='best_parameter')
+            plt.xlabel('model{}'.format(model+1))
+            plt.legend(loc='best')
+        plt.savefig(osp.join(input_path, 'analysisi_{}'.format(args.function)))
 
 
 
@@ -547,6 +683,7 @@ if __name__ =='__main__':
     parser.add_argument('--expand_rate',type=float,default=1.1)
     parser.add_argument('--end_point',type=int,default=-1)
     parser.add_argument('--start_point',type=int,default=0)
+    parser.add_argument('--is_best_para',type=int,default=1) #1 indecate is best_parameter, set for function 11
     parser.add_argument('--query_rate',type=float,default=0.5)
     working_dir = os.path.dirname(os.path.abspath(__file__))
     parser.add_argument('--data_dir', type=str, metavar='PATH', default=os.path.join(working_dir, 'data'))  # 加载数据集的根目录
@@ -555,6 +692,20 @@ if __name__ =='__main__':
     parser.add_argument('--exp_order', type=str, default="0")
     parser.add_argument('--dataset', type=str, default='DukeMTMC-VideoReID')
     main(parser.parse_args())
+
+    '''
+        文件描述 :
+        this file is used to draw figure according  to the data produced by 'analysis.py'.
+        you must give the special parameters 'exp_name' and 'exp_order' which indicate the location of the data to run this files.
+        运行命令如:
+        python3.6  analysis_data_handle.py --exp_name gradually_11step --exp_order 0
+        python3.6  analysis_data_handle.py --exp_name gradually_EF15 --exp_order 0  --function 11 --is_best_para 1
+        python3.6  analysis_data_handle.py --exp_name gradually_EF15 --exp_order 0  --function 12 
+    '''
+
+
+
+
 
 
 
