@@ -89,7 +89,7 @@ def main(args):
         # 标签估计
         estimate_start = time.time()
         # pred_y, pred_score, label_pre, id_num = 0,0,0,0
-        pred_y, pred_score, label_pre, id_num = eug.estimate_label_variup1(step)
+        pred_y, pred_score, label_pre, dists_ul,dists_ll = eug.estimate_label_variup1()
         estimate_end = time.time()
 
         # 循环退出判断
@@ -100,7 +100,7 @@ def main(args):
         new_nums_to_select = min(math.ceil(len(u_data) * math.pow((step + 1), args.q) * args.EF / 100),len(u_data))  # EUG 基础指数渐进策略
         # new_nums_to_select = min(math.ceil((len(u_data)-args.yita)*(step-1)/(total_step-2))+args.yita,len(u_data))  # big start
 
-        selected_idx = eug.select_top_data(pred_score, new_nums_to_select)
+        selected_idx = eug.select_top_data_variup1(pred_score, new_nums_to_select,dists_ul,dists_ll,args.expand_rate)
         new_train_data, select_pre = eug.generate_new_train_data(selected_idx, pred_y)
 
         # 输出该epoch的信息
@@ -150,6 +150,7 @@ if __name__ == '__main__':
     parser.add_argument('--max_frames', type=int, default=100)
     parser.add_argument('--clock',type=bool, default=True)  #是否记时
     parser.add_argument('--gdraw',type=bool, default=False)  #是否实时绘图
+    parser.add_argument('--expand_rate',type=float, default=0.8)  #是否实时绘图
 
     #下面是暂时不知道用来做什么的参数
     parser.add_argument('-a', '--arch', type=str, default='avg_pool',choices=models.names())  #eug model_name

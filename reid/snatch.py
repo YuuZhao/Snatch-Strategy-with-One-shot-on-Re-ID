@@ -207,7 +207,7 @@ class EUG():
         # print(id_num)
         return labels, scores,num_correct_pred/u_feas.shape[0],id_num
 
-    def get_Dissimilarity_result2(self):
+    def get_Dissimilarity_result2(self): # 和baseline的区别就是 对数据进行了正则化
         # l_feas_file = codecs.open("logs/l_feas/test1.txt",'a')
         # extract feature
         u_feas = self.get_feature(self.u_data)
@@ -267,7 +267,7 @@ class EUG():
 
         if self.mode == "Dissimilarity":
             # predict label by dissimilarity cost
-            [pred_label, pred_score,label_pre,id_num] = self.get_Dissimilarity_result2()
+            [pred_label, pred_score,label_pre,id_num] = self.get_Dissimilarity_result()
 
         elif self.mode == "Classification":
             # predict label by classification
@@ -277,58 +277,39 @@ class EUG():
 
         return pred_label, pred_score,label_pre,id_num
 
-
-    def estimate_label_variup1(self,step):
-        # l_feas_file = codecs.open("logs/l_feas/test1.txt",'a')
+    def estimate_label_variup1(self):
         # extract feature
         u_feas = self.get_feature(self.u_data)
         l_feas = self.get_feature(self.l_data)
-        l_mean = l_feas.mean(axis=0)
-        l_std = l_feas.std(axis=0)
-        l_feas -= l_mean
-        l_feas /= l_std
-        # np.save("logs/l_feas/test1.npy",l_feas)
         print("u_features", u_feas.shape, "l_features", l_feas.shape)
+
         scores = np.zeros((u_feas.shape[0]))
         labels = np.zeros((u_feas.shape[0]))
         # 分别用来存 _ufeas的分数和标签
-        id_num = {}  # 以标签名称作为字典
+
+        dists_ul = []
         num_correct_pred = 0
         for idx, u_fea in enumerate(u_feas):
-            # dist = []
-            # for l_fea in l_feas:
-            #     d = np.dot(l_fea,u_fea)/(np.linalg.norm(l_fea)*(np.linalg.norm(u_fea)))
-            #     dist.appen(d)
-            # dist = cosine_similarity(l_feas,u_fea) #维度不对
-            # dist = cosine_similarity(l_feas,np.array([u_fea])).reshape(-1)
-            # print("----------------------------------------------------dist:{}".format(dist))
-            u_fea -= l_mean
-            u_fea /= l_std
             diffs = l_feas - u_fea
             dist = np.linalg.norm(diffs, axis=1)
+            dists_ul.append(dist)
             index_min = np.argmin(dist)
             scores[idx] = - dist[index_min]  # "- dist" : more dist means less score
             labels[idx] = self.l_label[index_min]  # take the nearest labled neighbor as the prediction label
-            # if a:
-            #     print("labels :-------------------------------------------", labels[idx])
-            #     a = 0
-            #     输出的结果是0.0
-            # count the correct number of Nearest Neighbor prediction
             if self.u_label[idx] == labels[idx]:
                 num_correct_pred += 1
-            # 统计各个id的数量
-            if str(labels[idx]) in id_num.keys():
-                id_num[str(labels[idx])] = id_num[str(labels[idx])] + 1  # 值加1
-            else:
-                id_num[str(labels[idx])] = 1
+        dists_ll = []
+        for idx,l_fea in enumerate(l_feas):
+            diffs = l_feas - l_fea
+            dist = np.linalg.norm(diffs, axis=1)
+            dists_ll.append(dist)
+
 
         print("{} predictions on all the unlabeled data: {} of {} is correct, accuracy = {:0.3f}".format(
             self.mode, num_correct_pred, u_feas.shape[0], num_correct_pred / u_feas.shape[0]))
 
-        sorted(id_num.items(), key=lambda item: item[1])
-        # print("id_num:--------------------------------------------id_num----------------- ")
-        # print(id_num)
-        return labels, scores, num_correct_pred / u_feas.shape[0], id_num
+        return labels, scores, num_correct_pred / u_feas.shape[0], dists_ul,dists_ll
+
 
 
     def select_top_data(self, pred_score, nums_to_select):
@@ -337,6 +318,61 @@ class EUG():
         for i in range(nums_to_select):  #排序,求最前面的n个
             v[index[i]] = 1
         return v.astype('bool')
+
+    def select_top_data_variup1(self,pred_score, new_nums_to_select,dists_ul,dists_ll,expand_rate):
+        select_num = new_nums_to_select
+        expand_num = select_num / expand_rate
+        # the first sampling
+        index_dists = np.argsort(-pred_score)
+        select_index1 = index_dists[:expand_num]
+
+        # the second sampling
+        # get the min class-inter distance for each categories
+        c_dists = np.zeros(len(dists_ll))
+        for idx ,diffs in enumerate(dists_ll):
+            index = np.argsort(diffs)
+            c_dists[idx] = diffs[index[1]]  #最小类间距离
+
+        select_index2 = []
+        vari_index = []
+        vari = []
+        for index in select_index1:
+            dists_list = dists_ul[index]
+            index_sort = np.argsort(dists_list)
+            a = dists_list[index_sort[0]]
+            b = dists_list[index_sort[1]]
+            c_min = c_dists[index_sort[0]]
+            c = dists_ll[index_sort[0]][index_sort[1]]
+            left_formula = (pow(a,2)+pow(b,2)-pow(c,2))/(2*a*b)
+            right_formula = a/pow((pow(c_min,2)+pow(a,2)),0.5)
+            if left_formula >= right_formula:
+                select_index2.append(index)
+            else: # 否则计算方差，并将index和方差分别存入vari_index 和vari里面
+                list = [a,b]
+                v = np.std(list)
+                vari_index.append(index)
+                vari.append(v)
+
+        m = len(select_index2)
+        if m >= select_num:
+            select_index = select_index1[:select_num]
+        else:
+            vari = np.array(vari)
+            index_sort_vari = np.argsort(-vari)
+            select_index3 = select_index1[index_sort_vari[:select_num-m]]
+            select_index = select_index2.extend(select_index3)
+
+        select = np.zeros(len(pred_score))
+        for index in select_index:
+            select[index]=1
+        return select
+
+
+
+
+
+
+
 
     def select_top_data_NLVM(self, pred_score, nums_to_select, percent_P = 0.1, percent_N = 0.1):
         # pred_score = pred_score.T # if necessary
