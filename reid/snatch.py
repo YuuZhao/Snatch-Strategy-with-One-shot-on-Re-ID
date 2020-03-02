@@ -278,6 +278,59 @@ class EUG():
         return pred_label, pred_score,label_pre,id_num
 
 
+    def estimate_label_variup1(self,step):
+        # l_feas_file = codecs.open("logs/l_feas/test1.txt",'a')
+        # extract feature
+        u_feas = self.get_feature(self.u_data)
+        l_feas = self.get_feature(self.l_data)
+        l_mean = l_feas.mean(axis=0)
+        l_std = l_feas.std(axis=0)
+        l_feas -= l_mean
+        l_feas /= l_std
+        # np.save("logs/l_feas/test1.npy",l_feas)
+        print("u_features", u_feas.shape, "l_features", l_feas.shape)
+        scores = np.zeros((u_feas.shape[0]))
+        labels = np.zeros((u_feas.shape[0]))
+        # 分别用来存 _ufeas的分数和标签
+        id_num = {}  # 以标签名称作为字典
+        num_correct_pred = 0
+        for idx, u_fea in enumerate(u_feas):
+            # dist = []
+            # for l_fea in l_feas:
+            #     d = np.dot(l_fea,u_fea)/(np.linalg.norm(l_fea)*(np.linalg.norm(u_fea)))
+            #     dist.appen(d)
+            # dist = cosine_similarity(l_feas,u_fea) #维度不对
+            # dist = cosine_similarity(l_feas,np.array([u_fea])).reshape(-1)
+            # print("----------------------------------------------------dist:{}".format(dist))
+            u_fea -= l_mean
+            u_fea /= l_std
+            diffs = l_feas - u_fea
+            dist = np.linalg.norm(diffs, axis=1)
+            index_min = np.argmin(dist)
+            scores[idx] = - dist[index_min]  # "- dist" : more dist means less score
+            labels[idx] = self.l_label[index_min]  # take the nearest labled neighbor as the prediction label
+            # if a:
+            #     print("labels :-------------------------------------------", labels[idx])
+            #     a = 0
+            #     输出的结果是0.0
+            # count the correct number of Nearest Neighbor prediction
+            if self.u_label[idx] == labels[idx]:
+                num_correct_pred += 1
+            # 统计各个id的数量
+            if str(labels[idx]) in id_num.keys():
+                id_num[str(labels[idx])] = id_num[str(labels[idx])] + 1  # 值加1
+            else:
+                id_num[str(labels[idx])] = 1
+
+        print("{} predictions on all the unlabeled data: {} of {} is correct, accuracy = {:0.3f}".format(
+            self.mode, num_correct_pred, u_feas.shape[0], num_correct_pred / u_feas.shape[0]))
+
+        sorted(id_num.items(), key=lambda item: item[1])
+        # print("id_num:--------------------------------------------id_num----------------- ")
+        # print(id_num)
+        return labels, scores, num_correct_pred / u_feas.shape[0], id_num
+
+
     def select_top_data(self, pred_score, nums_to_select):
         v = np.zeros(len(pred_score))
         index = np.argsort(-pred_score)
