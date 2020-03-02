@@ -204,4 +204,13 @@ if __name__ == '__main__':
     python3.6 nlvm-b4.py --exp_order 4 --percent_vari 0.7 --stop_vari_step 4  
     python3.6 nlvm-b4.py --exp_order 5 --percent_vari 0.7 --stop_vari_step 3  
     python3.6 nlvm-b4.py --exp_order 6 --percent_vari 0.7 --stop_vari_step 6
+    
+    
+    python3.6 nlvm-b4.py --exp_order 2 --percent_vari 0.8 --stop_vari_step 5 --dataset mars --max_frames 100
+
+    python3.6 nlvm-b4.py --exp_order 2 --percent_vari 0.8 --stop_vari_step 5  --exp_name vgssm_EF15 --EF 15
+    python3.6 nlvm-b4.py --exp_order 2 --percent_vari 0.8 --stop_vari_step 5  --exp_name vgssm_EF15 --EF 15  --dataset mars --max_frames 100
+    # when EF = 15 ,the stop_vari_step should be 4
+    python3.6 nlvm-b4.py --exp_order 3 --percent_vari 0.8 --stop_vari_step 4  --exp_name vgssm_EF15 --EF 15
+    python3.6 nlvm-b4.py --exp_order 3 --percent_vari 0.8 --stop_vari_step 4  --exp_name vgssm_EF15 --EF 15  --dataset mars --max_frames 100
     '''

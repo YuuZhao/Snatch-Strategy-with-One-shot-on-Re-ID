@@ -243,3 +243,5 @@ examples/data
 /draw_atm_dgi.py
 /draw_atm_ero.py
 /analysis/
+/analysis.py
+/analysis_data_handle.py

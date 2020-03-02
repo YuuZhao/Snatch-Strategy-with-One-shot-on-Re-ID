@@ -136,7 +136,7 @@ def main(args):
             new_expend_nums_to_select = min(len(u_data), math.ceil(new_nums_to_select * real_percent_vari))
             new_query_nums = math.floor(new_nums_to_select * args.P_q)
             if args.exp_name == 'vgssm_EF15':
-                new_query_nums = math.floor(new_nums_to_select * expand_rate / 2)  # qu half of e
+                new_query_nums = math.floor(new_nums_to_select * real_percent_vari*0.5)  # qu half of e
             selected_idx = eug.select_top_data_vcf01(pred_score, dists, new_expend_nums_to_select, new_nums_to_select,new_query_nums)
         else:
             real_percent_vari = 1
@@ -217,5 +217,6 @@ if __name__ == '__main__':
     python3.6 vcf03.py --exp_order 7 --P_q 0.7  --stop_vari_step 7  --dataset mars  --max_frames 100
     
     python3.6 vcf03.py --exp_name vgssm_EF15 --exp_order 0 --EF 15 
+    python3.6 vcf03.py --exp_name vgssm_EF15 --exp_order 0 --EF 15  --dataset mars --max_frames 100
 
     '''

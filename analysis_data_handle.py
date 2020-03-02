@@ -222,13 +222,14 @@ def main(args):
             vari = np.load(osp.join(vari_path,vari_file))
             list_length = dists.shape[0]
             x = np.arange(list_length)
-            index = np.argsort(dists)
-            y = vari[index]
+            # index = np.argsort(dists)
+            index = np.argsort(-vari)
+            y = dists[index]
             plt.plot(x, y, label='model_{}'.format(i))
         plt.legend(loc='best')
-        plt.title('variance sort by distance')
+        plt.title('distance sort by variance')
         plt.xlabel('u_data')
-        plt.ylabel('variance')
+        plt.ylabel('distance')
         plt.savefig(osp.join(input_path, 'dists&vari_1_analysis_{}'.format(args.function)))
         plt.show()
 
