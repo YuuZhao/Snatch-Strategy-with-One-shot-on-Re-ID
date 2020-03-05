@@ -159,3 +159,10 @@ if __name__ == '__main__':
     parser.add_argument('-l', '--l', type=float)
     parser.add_argument('--continuous', action="store_true")
     main(parser.parse_args())
+
+
+    '''
+    python3.6 variup.py --exp_name variup_EF15 --EF 15 --exp_order 0 --expand_rate 0.8
+    python3.6 variup.py --exp_name variup_EF15 --EF 15 --exp_order 0 --expand_rate 0.8  --dataset mars
+    '''
+

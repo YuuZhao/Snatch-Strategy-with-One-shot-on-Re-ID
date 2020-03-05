@@ -321,7 +321,7 @@ class EUG():
 
     def select_top_data_variup1(self,pred_score, new_nums_to_select,dists_ul,dists_ll,expand_rate):
         select_num = new_nums_to_select
-        expand_num = select_num / expand_rate
+        expand_num = math.ceil(select_num / expand_rate)
         # the first sampling
         index_dists = np.argsort(-pred_score)
         select_index1 = index_dists[:expand_num]
@@ -352,7 +352,7 @@ class EUG():
                 v = np.std(list)
                 vari_index.append(index)
                 vari.append(v)
-
+        select_index =[]
         m = len(select_index2)
         if m >= select_num:
             select_index = select_index1[:select_num]
@@ -360,11 +360,14 @@ class EUG():
             vari = np.array(vari)
             index_sort_vari = np.argsort(-vari)
             select_index3 = select_index1[index_sort_vari[:select_num-m]]
-            select_index = select_index2.extend(select_index3)
+            select_index2.extend(select_index3)
+            select_index = select_index2
+
+        print("aim to  select {} samples, expand to {} samples first, {} samples is exclude by varian, finally {} samples are selected.".format(select_num,expand_num,m,len(select_index)))
 
         select = np.zeros(len(pred_score))
-        for index in select_index:
-            select[index]=1
+        for i in range(len(select_index)):
+            select[select_index[i]]=1
         return select
 
 
