@@ -267,7 +267,7 @@ class EUG():
 
         if self.mode == "Dissimilarity":
             # predict label by dissimilarity cost
-            [pred_label, pred_score,label_pre,id_num] = self.get_Dissimilarity_result2()
+            [pred_label, pred_score,label_pre,id_num] = self.get_Dissimilarity_result()
 
         elif self.mode == "Classification":
             # predict label by classification

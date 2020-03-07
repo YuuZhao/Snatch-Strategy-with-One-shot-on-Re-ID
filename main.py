@@ -23,6 +23,29 @@ import matplotlib.pyplot as plt
 import os
 import  codecs
 from common_tool import *
+def reduce_data(l_data,u_data):
+    l_labels = np.array([label for _, label, _, _ in l_data])
+    u_labels = np.array([label for _, label, _, _ in u_data])
+    one_in_class = np.zeros(len(l_labels))
+    for idx in range(len(u_labels)):
+        label = u_labels[idx]
+        if one_in_class[label]==0:
+            one_in_class[label] = int(idx)
+        else:
+            continue
+    # index_u = np.array(len(u_data))
+    randomIndex = random.sample(range(0,len(u_labels)), 4000)
+    randomTndex = np.array(randomIndex)
+    select_index = np.union1d(one_in_class,randomIndex)
+    select_index = select_index.astype(np.int32)
+    np.save('mars4000.npy',select_index)
+    new_u_data = []
+    for index in select_index:
+        new_u_data.append(u_data[index])
+    return list(new_u_data)
+
+
+
 
 def main(args):
     # 声明动态绘图器
@@ -36,7 +59,15 @@ def main(args):
     dataset_all = datasets.create(args.dataset, osp.join(args.data_dir, args.dataset))
     l_data, u_data = get_one_shot_in_cam1(dataset_all, load_path="./examples/oneshot_{}_used_in_paper.pickle".format(
         dataset_all.name))
-    NN = len(l_data) + len(u_data)
+
+    u_data = reduce_data(l_data,u_data)
+    # select_index = np.load('mars4000.npy')
+    # new_u_data = []
+    # for index in select_index:
+    #     new_u_data.append(u_data[index])
+    # u_data = new_u_data
+
+    # NN = len(l_data) + len(u_data)
 
     # 总的训练step数的计算
     total_step = math.ceil(math.pow((100 / args.EF), (1 / args.q)))   # 这里应该取上限或者 +2  多一轮进行one-shot训练的  # EUG base 采样策略
@@ -162,3 +193,8 @@ if __name__ == '__main__':
     parser.add_argument('-l', '--l', type=float)
     parser.add_argument('--continuous', action="store_true")
     main(parser.parse_args())
+
+
+    '''
+    python3.6 main.py --exp_name gradually_11step --exp_order 3 --dataset mars --max_frames 100 --EF 10
+    '''
