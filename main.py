@@ -197,4 +197,5 @@ if __name__ == '__main__':
 
     '''
     python3.6 main.py --exp_name gradually_11step --exp_order 3 --dataset mars --max_frames 100 --EF 10
+    python3.6 main.py --exp_name gradually_11step --exp_order 4 --dataset mars --max_frames 100 --EF 10
     '''

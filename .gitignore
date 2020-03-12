@@ -243,3 +243,4 @@ examples/data
 /draw_atm_ero.py
 /draw_atm_dgi.py
 /mars4000.npy
+/baseline.py
