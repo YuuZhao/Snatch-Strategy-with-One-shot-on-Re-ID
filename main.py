@@ -60,7 +60,7 @@ def main(args):
     l_data, u_data = get_one_shot_in_cam1(dataset_all, load_path="./examples/oneshot_{}_used_in_paper.pickle".format(
         dataset_all.name))
 
-    u_data = reduce_data(l_data,u_data)
+    # u_data = reduce_data(l_data,u_data)
     # select_index = np.load('mars4000.npy')
     # new_u_data = []
     # for index in select_index:
@@ -99,7 +99,8 @@ def main(args):
     step = 0
     if args.resume:
         step = resume_step
-        nums_to_select = min(math.ceil(len(u_data) * math.pow((step), args.q) * args.EF / 100),len(u_data))
+        nums_to_select = min(int(len(u_data) * (step) * args.EF / 100), len(u_data))
+        # nums_to_select = min(math.ceil(len(u_data) * math.pow((step), args.q) * args.EF / 100),len(u_data))
     step_size = []
     isout = 0  #用来标记是否应该结束训练
 
@@ -115,8 +116,9 @@ def main(args):
 
         # 开始评估
         evaluate_start = time.time()
-        # mAP, top1, top5, top10, top20 = 0,0,0,0,0
-        mAP,top1,top5,top10,top20 = eug.evaluate(dataset_all.query, dataset_all.gallery)
+        mAP, top1, top5, top10, top20 = 0,0,0,0,0
+        if step !=0:
+            mAP,top1,top5,top10,top20 = eug.evaluate(dataset_all.query, dataset_all.gallery)
 
         # 标签估计
         estimate_start = time.time()
@@ -129,7 +131,8 @@ def main(args):
             isout = 1
 
         # nums_to_select 的设定
-        new_nums_to_select = min(math.ceil(len(u_data) * math.pow((step + 1), args.q) * args.EF / 100),len(u_data))  # EUG 基础指数渐进策略
+        new_nums_to_select = min(int(len(u_data) * (step + 1) * args.EF / 100), len(u_data))
+        # new_nums_to_select = min(math.ceil(len(u_data) * math.pow((step + 1), args.q) * args.EF / 100),len(u_data))  # EUG 基础指数渐进策略
         # new_nums_to_select = min(math.ceil((len(u_data)-args.yita)*(step-1)/(total_step-2))+args.yita,len(u_data))  # big start
 
         selected_idx = eug.select_top_data(pred_score, new_nums_to_select)
@@ -198,4 +201,6 @@ if __name__ == '__main__':
     '''
     python3.6 main.py --exp_name gradually_11step --exp_order 3 --dataset mars --max_frames 100 --EF 10
     python3.6 main.py --exp_name gradually_11step --exp_order 4 --dataset mars --max_frames 100 --EF 10
+    python3.6 main.py --exp_name gradually_11step --exp_order 5 --dataset mars --max_frames 100 --EF 10
+
     '''
