@@ -33,7 +33,7 @@ def scatter(fts_gp, lbs_gp,cams,lbs,labeled,labeled_lbs):
                         c='black',marker='.')
 # %%
 data_set = 'mars'
-group_name = 'step_2'
+group_name = 'step_6'
 fts1 = np.load('tsne/{}/{}/fts_1.npy'.format(data_set,group_name))
 lbs1 = np.load('tsne/{}/{}/lbs_1.npy'.format(data_set,group_name))
 cams1 = np.load('tsne/{}/{}/cams_1.npy'.format(data_set,group_name))

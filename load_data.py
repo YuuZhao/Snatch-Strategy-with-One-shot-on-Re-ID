@@ -64,7 +64,7 @@ def main(args):
               max_frames=args.max_frames)
 
     data_set = 'mars'
-    group_name = 'step_2'
+    group_name = 'step_6'
     step = group_name.split('_')[1]
     middle = math.ceil(len(l_data) / 2)
     l_data_1 = l_data[:middle]

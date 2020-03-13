@@ -51,7 +51,8 @@ def main(args):
     middle = math.ceil(len(l_data)/2)
     l_data_1 = l_data[:middle]
     l_data_2 = l_data[middle:]
-    eug.resume('tsne/Dissimilarity_step_0.ckpt', 0)
+    model_order = 0
+    eug.resume('tsne/{}/step_{}/Dissimilarity_step_{}.ckpt'.format(args.dataset,model_order,model_order), model_order)
     print('Extracting features...')
     fts,lbs,cams = eug.get_feature_with_labels_cams(l_data_1)
     print('Saving fts1...')
