@@ -18,29 +18,28 @@ import gc
 def extract_features(model, data_loader, print_freq=1, metric=None):
     cudnn.benchmark = False
     model.eval()
-    with torch.no_grad():
-        batch_time = AverageMeter()
-        data_time = AverageMeter()
+    # with torch.no_grad():
+    batch_time = AverageMeter()
+    data_time = AverageMeter()
 
-        features = OrderedDict()
-        labels = OrderedDict()
+    features = OrderedDict()
+    labels = OrderedDict()
 
-        with tqdm.tqdm(total=len(data_loader)) as pbar:
-            for i, (imgs, fnames, pids, _, _) in enumerate(data_loader):
-                outputs = extract_cnn_feature(model, imgs)
-                # del imgs
-                for fname, output, pid in zip(fnames, outputs, pids):
-                    features[fname] = output
-                    labels[fname] = pid
+    with tqdm.tqdm(total=len(data_loader)) as pbar:
+        for i, (imgs, fnames, pids, _, _) in enumerate(data_loader):
+            outputs = extract_cnn_feature(model, imgs)
+            # del imgs
+            for fname, output, pid in zip(fnames, outputs, pids):
+                features[fname] = output
+                labels[fname] = pid
 
-                del imgs,outputs
-                gc.collect()
-                pbar.update(1)
+            # del imgs,outputs
+            # gc.collect()
+            pbar.update(1)
 
-
-        print("Extract {} batch videos".format(len(data_loader)))
-        cudnn.benchmark = True
-        return features, labels
+    print("Extract {} batch videos".format(len(data_loader)))
+    cudnn.benchmark = True
+    return features, labels
 
 
 def pairwise_distance(features, query=None, gallery=None, metric=None):

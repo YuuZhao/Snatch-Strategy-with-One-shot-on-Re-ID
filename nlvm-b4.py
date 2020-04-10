@@ -65,11 +65,11 @@ def main(args):
     # u_data = reduce_data(l_data,u_data)
     # print(len(u_data))
 
-    select_index = np.load('mars4000.npy')
-    new_u_data = []
-    for index in select_index:
-        new_u_data.append(u_data[index])
-    u_data = new_u_data
+    # select_index = np.load('mars4000.npy')
+    # new_u_data = []
+    # for index in select_index:
+    #     new_u_data.append(u_data[index])
+    # u_data = new_u_data
     # NN = len(l_data) + len(u_data)
 
     # 总的训练step数的计算
@@ -249,4 +249,6 @@ if __name__ == '__main__':
     python3.6 nlvm-b4.py --exp_order 3 --percent_vari 0.8 --stop_vari_step 4  --exp_name vgssm_EF15 --EF 15  --dataset mars --max_frames 100
     
     python3.6 nlvm-b4.py --exp_order 4 --percent_vari 0.8 --stop_vari_step 5  --exp_name vgssm --dataset mars   --max_frames 100
+    
+    python3.6 nlvm-b4.py --exp_order 8 --percent_vari 0.8 --stop_vari_step 5  --exp_name vgssm --dataset mars   --max_frames 100
     '''

@@ -155,18 +155,19 @@ def main(args):
 
     elif args.function==2:
         '''
-        this part aims to draw the relationship between 'acc_list'  and both  'dists' and 'vari'
-        specially, we first sort index according to dists or vari, than draw the change of acc_list.
-        '''
+               this part aims to draw the relationship between 'acc_list'  and both  'dists' and 'vari'
+               specially, we first sort index according to dists or vari, than draw the change of acc_list.
+               '''
         print('excute function 2')
-        plt.figure(figsize=(12, 6), dpi=300)
-        for i in range(8):
-            #plt.subplot(10, 1, step + 1)
-            #print('handle dists{}.npy'.format(i))
+        plt.figure(figsize=(20, 8), dpi=300)
+        plt.subplot(1,2,1)
+        for i in range(11):
+            # plt.subplot(10, 1, step + 1)
+            # print('handle dists{}.npy'.format(i))
             dists_file = 'dists{}.npy'.format(i)
-            dists = np.load(osp.join(dists_path,dists_file))
+            dists = np.load(osp.join(dists_path, dists_file))
             acc_file = 'acc_list{}.npy'.format(i)
-            acc_list = np.load(osp.join(acc_path,acc_file))
+            acc_list = np.load(osp.join(acc_path, acc_file))
             list_length = dists.shape[0]
             x = np.arange(list_length)
             index = np.argsort(dists)
@@ -174,18 +175,21 @@ def main(args):
             acc = np.zeros(list_length)
             for j in range(list_length):  # 依次求acc
                 acc[j] = y[0:j + 1].sum() / (j + 1)
-            plt.plot(x, acc, label='model_{}'.format(i))
-            #z = np.zeros(dists.shape[0]) + i
-            #plt.bar(x, y,bottom=z, label= dists_file.split('.')[0]) # it is always wrong
-        plt.legend(loc='best')
-        plt.title('FN_acc sort by distance')
-        plt.xlabel('u_data')
-        plt.ylabel('FN_acc')
-        plt.savefig(osp.join(input_path,'dists_analysis_{}'.format(args.function)))
-        plt.show()
+            plt.plot(x, acc, label='model_{}'.format(i+1))
+            # z = np.zeros(dists.shape[0]) + i
+            # plt.bar(x, y,bottom=z, label= dists_file.split('.')[0]) # it is always wrong
+        # plt.legend(loc='best')
+        plt.title('Distance-based')
+        # plt.set_xlabel('Unlabel samples')
+        plt.xlabel('Unlabel samples')
+        plt.ylabel('FNacc')
+        plt.legend(loc='upper left', bbox_to_anchor=(0,1.15),ncol=6)
+        # plt.savefig(osp.join(input_path, 'vcfs_distance_{}'.format(args.function)))
+        # plt.savefig(osp.join(input_path,'dists_analysis_{}'.format(args.function)))
+        # plt.show()
 
-        plt.figure(figsize=(12, 6), dpi=300)
-        for i in range(8):
+        plt.subplot(1,2,2)
+        for i in range(11):
             vari_file = 'vari{}.npy'.format(i)
             vari = np.load(osp.join(vari_path, vari_file))
             acc_file = 'acc_list{}.npy'.format(i)
@@ -197,15 +201,17 @@ def main(args):
             acc = np.zeros(list_length)
             for j in range(list_length):  # 依次求acc
                 acc[j] = y[0:j + 1].sum() / (j + 1)
-            plt.plot(x, acc, label='model_{}'.format(i))
-            #z = np.zeros(vari.shape[0])+i
-            #plt.bar(x, y, bottom=z, label=vari_file.split('.')[0])
-        plt.legend(loc='best')
-        plt.title('FN_acc sort by variance')
-        plt.xlabel('u_data')
-        plt.ylabel('FN_acc')
-        plt.savefig(osp.join(input_path, 'vari_analysis_{}'.format(args.function)))
-        plt.show()
+            plt.plot(x, acc, label='model_{}'.format(i+1))
+            # z = np.zeros(vari.shape[0])+i
+            # plt.bar(x, y, bottom=z, label=vari_file.split('.')[0])
+        # plt.legend(loc='best')
+        plt.title('Variance-based')
+        plt.xlabel('Unlabel samples')
+        plt.ylabel('FNacc')
+
+        plt.savefig(osp.join(input_path, 'vcfs_FNacc_{}'.format(args.function)))
+        # plt.savefig(osp.join(input_path, 'vari_analysis_{}'.format(args.function)))
+        # plt.show()
 
     elif args.function==3:
         '''
@@ -687,9 +693,11 @@ def main(args):
         vari_file = 'vari{}.npy'.format(model_order)
         vari = np.load(osp.join(vari_path, vari_file))
         index1 = np.argsort(dists)
+        # index1 = np.argsort(-vari)
         select_index  =  index1[:sampling_num]
         y_dists = dists[select_index]
         y_acc = acc_list[select_index]
+        y_vari = vari[select_index]
 
         total_right_num = sum(acc_list)
         select_right_num = sum(y_acc)
@@ -701,17 +709,98 @@ def main(args):
 
         print("there are {} samples have right label in all, when we select {} samples, there are {} samples have rigth label.".format(total_right_num,sampling_num,select_right_num))
         x = np.arange(sampling_num)
+        plt.figure(figsize=(6, 2), dpi=300)
+        plt.bar(x,0.5-y_dists,label='Distance confidence')
+        # plt.bar(x,y_vari,label='Variance confidence',color='r')
+        # plt.bar(x,y_acc,label ='wrong estimation',color='r')
+        plt.legend(loc='best')
+        # plt.xlabel('Unlabel samples')
+        # plt.ylabel('Distance')
+        # plt.title('The insufficient of distance-based sampling criterion')
+        plt.savefig('vcfs_image14_{}'.format(args.function))
+
+
+        # index1 = np.argsort(dists)
+        index1 = np.argsort(-vari)
+        select_index = index1[:sampling_num]
+        y_dists = dists[select_index]
+        y_acc = acc_list[select_index]
+        y_vari = vari[select_index]
+
+        total_right_num = sum(acc_list)
+        select_right_num = sum(y_acc)
+
+        for idx in range(sampling_num):
+            if y_acc[idx] == 1:
+                y_acc[idx] = 0
+            else:
+                y_acc[idx] = 0.1
+
+        print(
+            "there are {} samples have right label in all, when we select {} samples, there are {} samples have rigth label.".format(
+                total_right_num, sampling_num, select_right_num))
+        x = np.arange(sampling_num)
+        plt.figure(figsize=(6, 2), dpi=300)
+        # plt.bar(x,0.5-y_dists,label='Distance confidence')
+        plt.bar(x, y_vari, label='Variance confidence', color='orange')
+        # plt.bar(x,y_acc,label ='wrong estimation',color='r')
+        plt.legend(loc='best')
+        # plt.xlabel('Unlabel samples')
+        # plt.ylabel('Distance')
+        # plt.title('The insufficient of distance-based sampling criterion')
+        plt.savefig('vcfs_image142_{}'.format(args.function))
+
+    elif args.function ==16:
+        '''
+               draw picture for vcfs to illustrate the shortcoming of distance confidence.
+               '''
+
+        model_order  =0
+        sampling_num = 2000
+        expand_rate = 0.65
+        dists_file = 'dists{}.npy'.format(model_order)
+        dists = np.load(osp.join(dists_path, dists_file))
+        list_length = dists.shape[0]
+        acc_file = 'acc_list{}.npy'.format(model_order)
+        acc_list = np.load(osp.join(acc_path, acc_file))
+        vari_file = 'vari{}.npy'.format(model_order)
+        vari = np.load(osp.join(vari_path, vari_file))
+        index1 = np.argsort(dists)
+        # index1 = np.argsort(-vari)
+        select_index  =  index1[:sampling_num]
+        y_dists = dists[select_index]
+        y_acc = acc_list[select_index]
+        y_vari = vari[select_index]
+
+        total_right_num = sum(acc_list)
+        select_right_num = sum(y_acc)
+
+        for idx in range(sampling_num):
+            if y_acc[idx] == 1:
+                y_acc[idx]=0
+            else: y_acc[idx] = 1
+
+        print("there are {} samples have right label in all, when we select {} samples, there are {} samples have rigth label.".format(total_right_num,sampling_num,select_right_num))
+        x = np.arange(sampling_num)
         plt.figure(figsize=(6, 4), dpi=300)
-        plt.plot(x,y_dists,label='distance')
-        plt.bar(x,y_acc,label ='wrong estimation',color='r')
+        plt.axes([0.14,0.35,0.77,0.6])
+        # plt.subplot(1,2,1)
+        plt.bar(x,0.5-y_dists,label='Distance confidence')
+        plt.legend(loc='best')
+        # plt.xlabel('Unlabel samples')
+        # plt.bar(x,y_vari,label='Variance confidence',color='r')
+        # plt.bar(x,y_acc,label ='wrong estimation',color='r')
+        plt.axes([0.14, 0.1, 0.77, 0.15]) #left, low,width,high
+        # plt.subplot(1,2,2)
+        plt.bar(x,y_acc,label ='Wrong estimation',color='r')
         plt.legend(loc='best')
         plt.xlabel('Unlabel samples')
-        plt.ylabel('Distance')
+        # plt.ylabel('Distance')
         # plt.title('The insufficient of distance-based sampling criterion')
         plt.savefig('vcfs_image_{}'.format(args.function))
 
 
-        expand_rate = 0.65
+
         expande_num = math.floor(sampling_num / expand_rate)
         first_index = index1[:expande_num]
         vari_first = vari[first_index]
@@ -728,87 +817,24 @@ def main(args):
         for idx in range(sampling_num):
             if y_acc2[idx] == 1:
                 y_acc2[idx]=0
-            else: y_acc2[idx] = 0.05
+            else: y_acc2[idx] = 1
         x = np.arange(sampling_num)
         plt.figure(figsize=(6, 4), dpi=300)
-        plt.plot(x, y_vari, label='variance')
-        plt.bar(x, y_acc2, label='wrong estimation', color='r')
+        plt.axes([0.14, 0.35, 0.77, 0.6])
+        plt.bar(x, y_vari, label='Variance confident',color='orange')
+        plt.legend(loc='best')
+        # plt.xlabel('Unlabel samples')
+        # plt.ylabel('Variance')
+        plt.axes([0.14, 0.1, 0.77, 0.15])
+        plt.bar(x, y_acc2, label='Wrong estimation', color='r')
         plt.legend(loc='best')
         plt.xlabel('Unlabel samples')
-        plt.ylabel('Variance')
+        # plt.ylabel('Variance')
         # plt.title('The insufficient of distance-based sampling criterion')
         plt.savefig('vcfs_image_{}2'.format(args.function))
 
 
 
-
-
-    #     expand_to_num = math.floor(args.end_point * args.expand_rate)
-    #     query_start_num = math.floor(args.end_point * args.query_rate)
-    #     if expand_to_num >= list_length:
-    #         expand_to_num = list_length - 1
-    #
-    #     index1 = np.argsort(dists)
-    #     vari_sort_distance = vari[index1]
-    #
-    #     x = np.arange(list_length)
-    #     acc_sort_distance = acc_list[index1]
-    #     FNacc1 = np.zeros(list_length)
-    #     for j in range(list_length):  # 依次求acc
-    #         FNacc1[j] = acc_sort_distance[0:j + 1].sum() / (j + 1)
-    #     lns2 = ax2.plot(x[args.start_point:expand_to_num], FNacc1[args.start_point:expand_to_num],
-    #                     label='model_{}_FNacc'.format(i))
-    #     lns3 = ax2.plot(x[args.start_point:expand_to_num],
-    #                     acc_sort_distance[args.start_point:expand_to_num] * 0.2,
-    #                     'bo',
-    #                     ms=1, color='g', label='model_{}_acc_list'.format(i))
-    #     ax1 = ax2.twinx()
-    #     lns1 = ax1.plot(x[args.start_point:expand_to_num], vari_sort_distance[args.start_point:expand_to_num],
-    #                     color='coral',
-    #                     label='model_{}_vari'.format(i))
-    #
-    #     # resort by variance in [query_start_num:expand_to_num]
-    #     acc1 = acc_sort_distance[:args.end_point].sum()  #
-    #     vari_range = vari_sort_distance[:expand_to_num]  #
-    #     index2 = np.argsort(-vari_range)  # down sort
-    #     second_sampling_index2 = index2[:args.end_point]
-    #     acc_sort_variance = acc_sort_distance[second_sampling_index2]
-    #     acc2 = acc_sort_variance.sum()  # /second_samping_num
-    #     # vari_range2 = vari_sort_distance[query_start_num:expand_to_num]
-    #     index3 = np.argsort(-vari_sort_distance[query_start_num:expand_to_num]) + query_start_num
-    #     second_sampling_index3 = np.append(np.arange(query_start_num),
-    #                                        index3[:args.end_point - query_start_num])
-    #     acc_sort_variance3 = acc_sort_distance[second_sampling_index3]
-    #     acc3 = acc_sort_variance3.sum()
-    #     print('second_sampling_index3\'s length ={}'.format(len(second_sampling_index3)))
-    #     print(
-    #         'model_{} :: acc1:{}/{:.2%}, acc2:{}/{:.2%} acc3:{}/{:.2%}'.format(i, acc1, acc1 / args.end_point,
-    #                                                                            acc2,
-    #                                                                            acc2 / args.end_point, acc3,
-    #                                                                            acc3 / args.end_point))
-    #     acc_file = codecs.open(acc_file_name, mode='a')
-    #     acc_file.write('{}/{:.2%},{}/{:.2%},{}/{:.2%}\n'.format(acc1, acc1 / args.end_point,
-    #                                                             acc2,
-    #                                                             acc2 / args.end_point, acc3,
-    #                                                             acc3 / args.end_point))
-    #
-    #     vari_flag = vari_sort_distance[:expand_to_num]
-    #     for j in range(expand_to_num):
-    #         if j not in second_sampling_index3:
-    #             # print("not in index2")
-    #             vari_flag[j] = 0.3
-    #     lns4 = ax1.plot(x[args.start_point:expand_to_num], vari_flag, 'bo', ms=1,
-    #                     label='model_{}_sec_samp'.format(i),
-    #                     color='r')
-    #     lns = lns1 + lns2 + lns3 + lns4
-    #     labs = [l.get_label() for l in lns]
-    #     # ax1.legend(lns, labs, loc='best')
-    #     if i == len(query_rate_list) - 1:
-    #         ax1.legend(lns, labs, loc='lower right', bbox_to_anchor=(2, 0))
-    #     ax1.set_xlabel('distance')
-    #     ax1.set_ylabel('variance')
-    #     ax2.set_ylabel('FN_acc')
-    # plt.savefig(osp.join(input_path, '{}_of_EF15_{}'.format(key_name, args.function)))
 
 
 
@@ -842,6 +868,9 @@ if __name__ =='__main__':
         # python3.6  analysis_data_handle.py --exp_name gradually_EF15 --exp_order 0  --function 11 --is_best_para 1
         # python3.6  analysis_data_handle.py --exp_name gradually_EF15 --exp_order 0  --function 12 
         python3.6 vcfs_image.py --exp_name gradually_11step --exp_order 0 --function 15
+        python3.6 vcfs_image.py --exp_name gradually_11step --exp_order 0 --function 2
+        
+        python3.6 vcfs_image.py --exp_name gradually_11step --exp_order 0 --function 16 --dataset mars
         
         
     '''

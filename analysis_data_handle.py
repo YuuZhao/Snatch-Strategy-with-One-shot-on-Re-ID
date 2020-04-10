@@ -159,8 +159,8 @@ def main(args):
         specially, we first sort index according to dists or vari, than draw the change of acc_list.
         '''
         print('excute function 2')
-        plt.figure(figsize=(12, 6), dpi=300)
-        for i in range(8):
+        plt.figure(figsize=(6, 4), dpi=300)
+        for i in range(11):
             #plt.subplot(10, 1, step + 1)
             #print('handle dists{}.npy'.format(i))
             dists_file = 'dists{}.npy'.format(i)
@@ -178,14 +178,15 @@ def main(args):
             #z = np.zeros(dists.shape[0]) + i
             #plt.bar(x, y,bottom=z, label= dists_file.split('.')[0]) # it is always wrong
         plt.legend(loc='best')
-        plt.title('FN_acc sort by distance')
-        plt.xlabel('u_data')
-        plt.ylabel('FN_acc')
-        plt.savefig(osp.join(input_path,'dists_analysis_{}'.format(args.function)))
+        plt.title('FNacc sorted by distance')
+        plt.xlabel('Unlabel samples')
+        plt.ylabel('FNacc')
+        plt.savefig(osp.join(input_path,'vcfs_distance_{}'.format(args.function)))
+        # plt.savefig(osp.join(input_path,'dists_analysis_{}'.format(args.function)))
         plt.show()
 
-        plt.figure(figsize=(12, 6), dpi=300)
-        for i in range(8):
+        plt.figure(figsize=(6, 4), dpi=300)
+        for i in range(11):
             vari_file = 'vari{}.npy'.format(i)
             vari = np.load(osp.join(vari_path, vari_file))
             acc_file = 'acc_list{}.npy'.format(i)
@@ -201,10 +202,11 @@ def main(args):
             #z = np.zeros(vari.shape[0])+i
             #plt.bar(x, y, bottom=z, label=vari_file.split('.')[0])
         plt.legend(loc='best')
-        plt.title('FN_acc sort by variance')
-        plt.xlabel('u_data')
-        plt.ylabel('FN_acc')
-        plt.savefig(osp.join(input_path, 'vari_analysis_{}'.format(args.function)))
+        plt.title('FNacc sorted by variance')
+        plt.xlabel('Unlabel samples')
+        plt.ylabel('FNacc')
+        plt.savefig(osp.join(input_path, 'vcfs_variance_{}'.format(args.function)))
+        # plt.savefig(osp.join(input_path, 'vari_analysis_{}'.format(args.function)))
         plt.show()
 
     elif args.function==3:
@@ -702,6 +704,7 @@ if __name__ =='__main__':
         python3.6  analysis_data_handle.py --exp_name gradually_11step --exp_order 0
         python3.6  analysis_data_handle.py --exp_name gradually_EF15 --exp_order 0  --function 11 --is_best_para 1
         python3.6  analysis_data_handle.py --exp_name gradually_EF15 --exp_order 0  --function 12 
+        python3.6  analysis_data_handle.py --exp_name gradually_11step --exp_order 0  --function 2
     '''
 
 
