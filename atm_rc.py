@@ -63,7 +63,7 @@ def main(args):
                  max_frames=args.max_frames)
     # 开始的时间记录
     exp_start = time.time()
-    for step in range(total_step+1):
+    for step in range(total_step+1): # 加1 是为了保证所有的样本都加入了训练
 
         print("{} training begin with dataset:{},batch_size:{},epoch:{},step:{}/{} saved to {}.".format(args.exp_name,args.dataset,args.batch_size, args.epoch,step+1,total_step+1,reid_path))
         print("key parameters contain mv_num:{} len(one_shot):{},len(u_data):{}".format(mv_num,len(l_data),len(u_data)))
