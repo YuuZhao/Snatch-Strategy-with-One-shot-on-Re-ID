@@ -69,14 +69,14 @@ def main(args):
                  max_frames=args.max_frames)
     # 开始的时间记录
     exp_start = time.time()
-    for step in range(total_step):
+    for step in range(total_step+1):
 
         print("{} training begin with dataset:{},batch_size:{},epoch:{},step:{}/{} saved to {}.".format(args.exp_name,
                                                                                                         args.dataset,
                                                                                                         args.batch_size,
                                                                                                         args.epoch,
                                                                                                         step + 1,
-                                                                                                        total_step,
+                                                                                                        total_step+1,
                                                                                                         reid_path))
         print("key parameters contain mv_num:{} tagper_num:{} len(l_data):{},len(u_data):{}".format(mv_num, tagper_num,
                                                                                                     len(l_data),
@@ -171,7 +171,7 @@ if __name__ == '__main__':
     working_dir = os.path.dirname(os.path.abspath(__file__))
     parser.add_argument('--data_dir', type=str, metavar='PATH', default=os.path.join(working_dir, 'data'))  # 加载数据集的根目录
     parser.add_argument('--logs_dir', type=str, metavar='PATH', default=os.path.join(working_dir, 'logs'))  # 保持日志根目录
-    parser.add_argument('--exp_name', type=str, default="gradully_supplement")
+    parser.add_argument('--exp_name', type=str, default="atm2020")
     parser.add_argument('--exp_order', type=str, default="1")
     parser.add_argument('--resume', type=bool, default=False)
     parser.add_argument('--mode', type=str, choices=["Classification", "Dissimilarity"],
@@ -191,3 +191,7 @@ if __name__ == '__main__':
     parser.add_argument('-l', '--l', type=float)
     parser.add_argument('--continuous', action="store_true")
     main(parser.parse_args())
+
+'''
+python3.6 atm2020_01.py --total_step 10 --train_tagper_step 5 --exp_order 0
+'''
