@@ -83,7 +83,7 @@ def main(args):
                                                                                                     len(u_data)))
         print("length of l_data is {}, u_data is {}, train_reid_data is {}, tagper_trainset is {}".format(len(l_data),
                                                                                                         len(u_data),
-                                                                                                        len(train_reid_data),len(train_tagper_data))
+                                                                                                        len(train_reid_data),len(train_tagper_data)))
 
         # 开始训练
         reid_trainset = one_shot + train_reid_data  # 在这个过程中,保持了one_shot不变了
@@ -95,8 +95,8 @@ def main(args):
             reid.train(reid_trainset, step, tagper=0, epochs=args.epoch, step_size=args.step_size, init_lr=0.1)
 
         # 开始评估
-        # mAP, top1, top5, top10, top20 =0,0,0,0,0
-        mAP, top1, top5, top10, top20 = reid.evaluate(dataset_all.query, dataset_all.gallery)
+        mAP, top1, top5, top10, top20 =0,0,0,0,0
+        # mAP, top1, top5, top10, top20 = reid.evaluate(dataset_all.query, dataset_all.gallery)
         # 测试 train tagper之前的select_pre
         pred_y, pred_score, label_pre = reid.estimate_label(u_data, one_shot)  # 针对u_data进行标签估计
         selected_idx = reid.select_top_data(pred_score, min(mv_num, len(u_data)))
@@ -126,8 +126,8 @@ def main(args):
         tagper.train(tagper_trainset, step, tagper=1, epochs=args.epoch, step_size=args.step_size, init_lr=0.1)
 
         # 开始评估
-        # mAP, top1, top5, top10, top20 =0,0,0,0,0
-        mAPt, top1t, top5t, top10t, top20t = tagper.evaluate(dataset_all.query, dataset_all.gallery)
+        mAPt, top1t, top5t, top10t, top20t =0,0,0,0,0
+        # mAPt, top1t, top5t, top10t, top20t = tagper.evaluate(dataset_all.query, dataset_all.gallery)
         pred_yt, pred_scoret, label_pret = tagper.estimate_label(u_data, one_shot)
 
         # 下面正对 reid 移动数据.
@@ -205,4 +205,6 @@ if __name__ == '__main__':
 
 '''
 python3.6 atm2020_01.py --total_step 10 --train_tagper_step 5 --exp_order 0
+debug
+python3.6 atm2020_01.py --total_step 10 --train_tagper_step 5 --exp_order 0 --epoch 2
 '''
