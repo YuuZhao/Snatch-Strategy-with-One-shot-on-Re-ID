@@ -81,9 +81,13 @@ def main(args):
         print("key parameters contain mv_num:{} tagper_num:{} len(l_data):{},len(u_data):{}".format(mv_num, tagper_num,
                                                                                                     len(l_data),
                                                                                                     len(u_data)))
+        print("length of l_data is {}, u_data is {}, train_reid_data is {}, tagper_trainset is {}".format(len(l_data),
+                                                                                                        len(u_data),
+                                                                                                        len(train_reid_data),len(train_tagper_data))
 
         # 开始训练
         reid_trainset = one_shot + train_reid_data  # 在这个过程中,保持了one_shot不变了
+        # print("length of reid_trainset is {}".format(len(reid_trainset)))
         reid_start = time.time()
         if step == 0 and not args.is_baseline:
             reid.resume(osp.join(reid_path, 'Dissimilarity_step_0.ckpt'), 0)
@@ -99,12 +103,7 @@ def main(args):
         select_pre = reid.get_select_pre(selected_idx, pred_y, u_data)
 
         reid_end = time.time()
-        data_file.write(
-            "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} len(l_data):{} label_pre:{:.2%} select_pre:{:.2%}\n".format(
-                int(step + 1), mAP, top1, top5, top10, top20, len(l_data), label_pre, select_pre))
-        print(
-            "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} len(l_data):{} label_pre:{:.2%} select_pre:{:.2%} \n".format(
-                int(step + 1), mAP, top1, top5, top10, top20, len(l_data), label_pre, select_pre))
+
 
         tagper_start = time.time()
         '''第一个tagper可以resume'''
@@ -119,28 +118,39 @@ def main(args):
         '''所有的tagper都重新训练'''
         tagper.resume(osp.join(reid_path, 'Dissimilarity_step_{}.ckpt'.format(step)), step)
         selected_idx = tagper.select_top_data(pred_score, min(tagper_num, len(u_data)))
+        #select_pre = tagper.get_select_pre(selected_idx,pred_y,u_data)
         train_tagper_data = tagper.generate_new_train_data_only(selected_idx, pred_y,
                                                              u_data)  # 这个选择准确率应该是和前面的label_pre是一样的.
         tagper_trainset = one_shot + train_tagper_data
+        # print("length of tagper_trainset is {}".format(len(reid_trainset)))
         tagper.train(tagper_trainset, step, tagper=1, epochs=args.epoch, step_size=args.step_size, init_lr=0.1)
 
         # 开始评估
         # mAP, top1, top5, top10, top20 =0,0,0,0,0
-        mAP, top1, top5, top10, top20 = tagper.evaluate(dataset_all.query, dataset_all.gallery)
-        pred_y, pred_score, label_pre = tagper.estimate_label(u_data, one_shot)
+        mAPt, top1t, top5t, top10t, top20t = tagper.evaluate(dataset_all.query, dataset_all.gallery)
+        pred_yt, pred_scoret, label_pret = tagper.estimate_label(u_data, one_shot)
 
         # 下面正对 reid 移动数据.
-        selected_idx = tagper.select_top_data(pred_score, min(mv_num, len(u_data)))  # 从所有 u_data 里面选
+        selected_idx = tagper.select_top_data(pred_scoret, min(mv_num, len(u_data)))  # 从所有 u_data 里面选
         # l_data, select_pre = tagper.move_unlabel_to_label_cpu(selected_idx, pred_y, u_data)
-        l_data, u_data, select_pre = tagper.move_unlabel_to_label(selected_idx, pred_y, u_data, l_data)
+        train_reid_data, u_data, select_pret = tagper.get_label_from_unlabel(selected_idx, pred_yt, u_data)
         tapger_end = time.time()
+        l_data = l_data+train_reid_data
+
+
+        data_file.write(
+            "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} len(l_data):{} label_pre:{:.2%} select_pre:{:.2%}\n".format(
+                int(step + 1), mAP, top1, top5, top10, top20, len(l_data), label_pre, select_pre))
+        print(
+            "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} len(l_data):{} label_pre:{:.2%} select_pre:{:.2%} \n".format(
+                int(step + 1), mAP, top1, top5, top10, top20, len(l_data), label_pre, select_pre))
 
         tagper_file.write(
             "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} len(l_data):{}  label_pre:{:.2%} select_pre:{:.2%}\n".format(
-                int(step + 1), mAP, top1, top5, top10, top20, len(l_data), label_pre, select_pre))
+                int(step + 1), mAPt, top1t, top5t, top10t, top20t, len(l_data), label_pret, select_pret))
         print(
             "step:{} mAP:{:.2%} top1:{:.2%} top5:{:.2%} top10:{:.2%} top20:{:.2%} len(l_data):{} label_pre:{:.2%} select_pre:{:.2%}\n".format(
-                int(step + 1), mAP, top1, top5, top10, top20, len(l_data), label_pre, select_pre))
+                int(step + 1), mAPt, top1t, top5t, top10t, top20t, len(l_data), label_pret, select_pret))
 
         if args.clock:
             reid_time = reid_end - reid_start
@@ -152,6 +162,7 @@ def main(args):
             h, m, s = changetoHSM(step_time)
             print("this step is over, cost %02d:%02d:%02.6f" % (h, m, s))
 
+    # 计算l_data的标记准确率？
     data_file.close()
     tagper_file.close()
     if (args.clock):

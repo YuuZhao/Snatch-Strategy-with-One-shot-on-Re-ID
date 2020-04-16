@@ -534,6 +534,21 @@ class EUG():
         new_l_data = l_data + selected_data
         new_u_data = [u_data[i] for i in range(len(u_data)) if (sel_idx[i] == False)]
         return  new_l_data,new_u_data,acc
+    def get_label_from_unlabel(self, sel_idx, pred_y,u_data):
+        u_label = np.array([label for _, label, _, _ in u_data])
+        selected_data =[]
+        correct,total = 0,0
+        for i,flag in enumerate(sel_idx):
+            if flag:
+                selected_data.append([u_data[i][0], int(pred_y[i]), u_data[i][2], u_data[i][3]])
+                total +=1
+                if (u_label[i] ==int(pred_y[i])):
+                    correct +=1
+        if total == 0:
+            acc = 0
+        else: acc = correct/total
+        new_u_data = [u_data[i] for i in range(len(u_data)) if (sel_idx[i] == False)]
+        return  selected_data,new_u_data,acc
 
     def move_unlabel_to_label_cpu(self, sel_idx, pred_y,u_data):
         u_label = np.array([label for _, label, _, _ in u_data])
