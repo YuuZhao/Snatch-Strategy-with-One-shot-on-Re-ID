@@ -95,8 +95,8 @@ def main(args):
             reid.train(reid_trainset, step, tagper=0, epochs=args.epoch, step_size=args.step_size, init_lr=0.1)
 
         # 开始评估
-        mAP, top1, top5, top10, top20 =0,0,0,0,0
-        # mAP, top1, top5, top10, top20 = reid.evaluate(dataset_all.query, dataset_all.gallery)
+        # mAP, top1, top5, top10, top20 =0,0,0,0,0
+        mAP, top1, top5, top10, top20 = reid.evaluate(dataset_all.query, dataset_all.gallery)
         # 测试 train tagper之前的select_pre
         pred_y, pred_score, label_pre = reid.estimate_label(u_data, one_shot)  # 针对u_data进行标签估计
         selected_idx = reid.select_top_data(pred_score, min(mv_num, len(u_data)))
@@ -126,8 +126,8 @@ def main(args):
         tagper.train(tagper_trainset, step, tagper=1, epochs=args.epoch, step_size=args.step_size, init_lr=0.1)
 
         # 开始评估
-        mAPt, top1t, top5t, top10t, top20t =0,0,0,0,0
-        # mAPt, top1t, top5t, top10t, top20t = tagper.evaluate(dataset_all.query, dataset_all.gallery)
+        # mAPt, top1t, top5t, top10t, top20t =0,0,0,0,0
+        mAPt, top1t, top5t, top10t, top20t = tagper.evaluate(dataset_all.query, dataset_all.gallery)
         pred_yt, pred_scoret, label_pret = tagper.estimate_label(u_data, one_shot)
 
         # 下面正对 reid 移动数据.
