@@ -176,7 +176,7 @@ def main(args):
             train_time = evaluate_start - train_start
             evaluate_time = estimate_start - evaluate_start
             estimate_time = estimate_end - estimate_start
-            epoch_time = train_time + estimate_time
+            epoch_time = train_time - estimate_time
             time_file.write(
                 "step:{} train:{} evaluate:{} estimate:{} epoch:{}\n".format(int(step + 1), train_time, evaluate_time,
                                                                              estimate_time, epoch_time))
